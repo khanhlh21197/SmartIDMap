@@ -30,6 +30,8 @@ class MyMapSampleState extends State<MyMap> {
   Position _currentPosition;
   GoogleMapController _controller;
   final startAddressController = TextEditingController();
+  String _startAddress;
+  String _currentAddress;
 
   @override
   Widget build(BuildContext context) {
