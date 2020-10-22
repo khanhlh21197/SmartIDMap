@@ -8,6 +8,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:search_map_place/search_map_place.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
@@ -297,6 +298,9 @@ class _MapViewState extends State<MapView> {
   String _destinationAddress = '';
   String _placeDistance;
 
+  var latTemp = 20.989592;
+  var lonTemp = 105.785735;
+
   Set<Marker> markers = {};
 
   PolylinePoints polylinePoints;
@@ -432,8 +436,10 @@ class _MapViewState extends State<MapView> {
         Marker destinationMarker = Marker(
           markerId: MarkerId('$destinationCoordinates'),
           position: LatLng(
-            destinationCoordinates.latitude,
-            destinationCoordinates.longitude,
+            // destinationCoordinates.latitude,
+            // destinationCoordinates.longitude,
+            latTemp,
+            lonTemp,
           ),
           infoWindow: InfoWindow(
             title: 'Destination',
@@ -472,8 +478,10 @@ class _MapViewState extends State<MapView> {
                 _northeastCoordinates.longitude,
               ),
               southwest: LatLng(
-                _southwestCoordinates.latitude,
-                _southwestCoordinates.longitude,
+                // _southwestCoordinates.latitude,
+                // _southwestCoordinates.longitude,
+                latTemp,
+                lonTemp,
               ),
             ),
             100.0,
@@ -534,7 +542,8 @@ class _MapViewState extends State<MapView> {
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
       Secrets.API_KEY, // Google Maps API Key
       PointLatLng(start.latitude, start.longitude),
-      PointLatLng(destination.latitude, destination.longitude),
+      // PointLatLng(destination.latitude, destination.longitude),
+      PointLatLng(latTemp, lonTemp),
       travelMode: TravelMode.transit,
     );
 
@@ -571,6 +580,24 @@ class _MapViewState extends State<MapView> {
         key: _scaffoldKey,
         body: Stack(
           children: <Widget>[
+            SearchMapPlaceWidget(
+              apiKey: Secrets.API_KEY,
+              language: 'en',
+              // The position used to give better recomendations. In this case we are using the user position
+              radius: 30000,
+              // location: userPosition.coordinates,
+              location:
+                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
+              onSelected: (Place place) async {
+                final geolocation = await place.geolocation;
+                print(geolocation.toString());
+
+                // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
+                // final GoogleMapController controller = await _mapController.future;
+                // controller.animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
+                // controller.animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+              },
+            ),
             // Map View
             GoogleMap(
               markers: markers != null ? Set<Marker>.from(markers) : null,
