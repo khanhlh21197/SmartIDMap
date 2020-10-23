@@ -580,24 +580,6 @@ class _MapViewState extends State<MapView> {
         key: _scaffoldKey,
         body: Stack(
           children: <Widget>[
-            SearchMapPlaceWidget(
-              apiKey: Secrets.API_KEY,
-              language: 'en',
-              // The position used to give better recomendations. In this case we are using the user position
-              radius: 30000,
-              // location: userPosition.coordinates,
-              location:
-                  LatLng(_currentPosition.latitude, _currentPosition.longitude),
-              onSelected: (Place place) async {
-                final geolocation = await place.geolocation;
-                print(geolocation.toString());
-
-                // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
-                // final GoogleMapController controller = await _mapController.future;
-                // controller.animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
-                // controller.animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
-              },
-            ),
             // Map View
             GoogleMap(
               markers: markers != null ? Set<Marker>.from(markers) : null,
@@ -821,6 +803,28 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
+
+  // Widget _searchMapPlace() {
+  //   return SearchMapPlaceWidget(
+  //     apiKey: Secrets.API_KEY,
+  //     language: 'en',
+  //     // The position used to give better recomendations. In this case we are using the user position
+  //     radius: 30000,
+  //     // location: userPosition.coordinates,
+  //     location: LatLng(20.9868276, 105.7826455),
+  //     onSelected: (Place place) async {
+  //       final geolocation = await place.geolocation;
+  //       print(geolocation.toString());
+  //
+  //       // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
+  //       final GoogleMapController controller = await mapController.future;
+  //       controller
+  //           .animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
+  //       controller
+  //           .animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+  //     },
+  //   );
+  // }
 }
 
 class SnackBarPage extends StatelessWidget {
