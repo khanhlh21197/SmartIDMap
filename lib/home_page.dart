@@ -8,7 +8,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:search_map_place/search_map_place.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
@@ -298,8 +297,8 @@ class _MapViewState extends State<MapView> {
   String _destinationAddress = '';
   String _placeDistance;
 
-  var latTemp = 20.989592;
-  var lonTemp = 105.785735;
+  var latTemp = 20.999855;
+  var lonTemp = 105.723318;
 
   Set<Marker> markers = {};
 
@@ -416,7 +415,9 @@ class _MapViewState extends State<MapView> {
                 latitude: _currentPosition.latitude,
                 longitude: _currentPosition.longitude)
             : startPlacemark[0].position;
-        Position destinationCoordinates = destinationPlacemark[0].position;
+        // Position destinationCoordinates = destinationPlacemark[0].position;
+        Position destinationCoordinates =
+            Position(latitude: latTemp, longitude: lonTemp);
 
         // Start Location Marker
         Marker startMarker = Marker(
@@ -426,7 +427,7 @@ class _MapViewState extends State<MapView> {
             startCoordinates.longitude,
           ),
           infoWindow: InfoWindow(
-            title: 'Start',
+            title: 'Vị trí của bạn',
             snippet: _startAddress,
           ),
           icon: BitmapDescriptor.defaultMarker,
@@ -436,10 +437,10 @@ class _MapViewState extends State<MapView> {
         Marker destinationMarker = Marker(
           markerId: MarkerId('$destinationCoordinates'),
           position: LatLng(
-            // destinationCoordinates.latitude,
-            // destinationCoordinates.longitude,
-            latTemp,
-            lonTemp,
+            destinationCoordinates.latitude,
+            destinationCoordinates.longitude,
+            // latTemp,
+            // lonTemp,
           ),
           infoWindow: InfoWindow(
             title: 'Destination',
@@ -478,10 +479,10 @@ class _MapViewState extends State<MapView> {
                 _northeastCoordinates.longitude,
               ),
               southwest: LatLng(
-                // _southwestCoordinates.latitude,
-                // _southwestCoordinates.longitude,
-                latTemp,
-                lonTemp,
+                _southwestCoordinates.latitude,
+                _southwestCoordinates.longitude,
+                // latTemp,
+                // lonTemp,
               ),
             ),
             100.0,
@@ -514,8 +515,16 @@ class _MapViewState extends State<MapView> {
 
         setState(() {
           _placeDistance = totalDistance.toStringAsFixed(2);
-          print('DISTANCE: $_placeDistance km');
+          print('Khoảng cách: $_placeDistance km');
+          print('polylines: ${polylineCoordinates.length}');
         });
+
+        final double distance = await Geolocator().distanceBetween(
+            startCoordinates.latitude,
+            startCoordinates.longitude,
+            destinationCoordinates.latitude,
+            destinationCoordinates.longitude);
+        print('Distance: ${distance / 1000}');
 
         return true;
       }
@@ -543,10 +552,11 @@ class _MapViewState extends State<MapView> {
       Secrets.API_KEY, // Google Maps API Key
       PointLatLng(start.latitude, start.longitude),
       // PointLatLng(destination.latitude, destination.longitude),
-      PointLatLng(latTemp, lonTemp),
+      PointLatLng(destination.latitude, destination.longitude),
       travelMode: TravelMode.transit,
     );
 
+    print('result : ${result.points.length}');
     if (result.points.isNotEmpty) {
       result.points.forEach((PointLatLng point) {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
@@ -668,8 +678,8 @@ class _MapViewState extends State<MapView> {
                           ),
                           SizedBox(height: 10),
                           _textField(
-                              label: 'Start',
-                              hint: 'Choose starting point',
+                              label: 'Vị trí của bạn',
+                              hint: 'Chọn điểm bắt đầu',
                               prefixIcon: Icon(Icons.looks_one),
                               suffixIcon: IconButton(
                                 icon: Icon(Icons.my_location),
@@ -687,8 +697,8 @@ class _MapViewState extends State<MapView> {
                               }),
                           SizedBox(height: 10),
                           _textField(
-                              label: 'Destination',
-                              hint: 'Choose destination',
+                              label: 'Vị trí xe bus',
+                              hint: 'Chọn điểm đến',
                               prefixIcon: Icon(Icons.looks_two),
                               controller: destinationAddressController,
                               width: width,
@@ -701,7 +711,7 @@ class _MapViewState extends State<MapView> {
                           Visibility(
                             visible: _placeDistance == null ? false : true,
                             child: Text(
-                              'DISTANCE: $_placeDistance km',
+                              'Khoảng cách: $_placeDistance km',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -727,14 +737,13 @@ class _MapViewState extends State<MapView> {
                                         _scaffoldKey.currentState.showSnackBar(
                                           SnackBar(
                                             content: Text(
-                                                'Distance Calculated Sucessfully'),
+                                                'Tính khoảng cách thành công'),
                                           ),
                                         );
                                       } else {
                                         _scaffoldKey.currentState.showSnackBar(
                                           SnackBar(
-                                            content: Text(
-                                                'Error Calculating Distance'),
+                                            content: Text('Có lỗi xảy ra'),
                                           ),
                                         );
                                       }
@@ -748,7 +757,7 @@ class _MapViewState extends State<MapView> {
                             child: Padding(
                               padding: const EdgeInsets.all(8.0),
                               child: Text(
-                                'Show Route'.toUpperCase(),
+                                'Chỉ đường'.toUpperCase(),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 20.0,
@@ -803,28 +812,55 @@ class _MapViewState extends State<MapView> {
       ),
     );
   }
+// getUserLocation() async {//call this async method from whereever you need
+//
+//   LocationData myLocation;
+//   String error;
+//   Location location = new Location();
+//   try {
+//     myLocation = await location.getLocation();
+//   } on PlatformException catch (e) {
+//     if (e.code == 'PERMISSION_DENIED') {
+//       error = 'please grant permission';
+//       print(error);
+//     }
+//     if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+//       error = 'permission denied- please enable it from app settings';
+//       print(error);
+//     }
+//     myLocation = null;
+//   }
+//   currentLocation = myLocation;
+//   final coordinates = new Coordinates(
+//       myLocation.latitude, myLocation.longitude);
+//   var addresses = await Geocoder.local.findAddressesFromCoordinates(
+//       coordinates);
+//   var first = addresses.first;
+//   print(' ${first.locality}, ${first.adminArea},${first.subLocality}, ${first.subAdminArea},${first.addressLine}, ${first.featureName},${first.thoroughfare}, ${first.subThoroughfare}');
+//   return first;
+// }
 
-  // Widget _searchMapPlace() {
-  //   return SearchMapPlaceWidget(
-  //     apiKey: Secrets.API_KEY,
-  //     language: 'en',
-  //     // The position used to give better recomendations. In this case we are using the user position
-  //     radius: 30000,
-  //     // location: userPosition.coordinates,
-  //     location: LatLng(20.9868276, 105.7826455),
-  //     onSelected: (Place place) async {
-  //       final geolocation = await place.geolocation;
-  //       print(geolocation.toString());
-  //
-  //       // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
-  //       final GoogleMapController controller = await mapController.future;
-  //       controller
-  //           .animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
-  //       controller
-  //           .animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
-  //     },
-  //   );
-  // }
+// Widget _searchMapPlace() {
+//   return SearchMapPlaceWidget(
+//     apiKey: Secrets.API_KEY,
+//     language: 'en',
+//     // The position used to give better recomendations. In this case we are using the user position
+//     radius: 30000,
+//     // location: userPosition.coordinates,
+//     location: LatLng(20.9868276, 105.7826455),
+//     onSelected: (Place place) async {
+//       final geolocation = await place.geolocation;
+//       print(geolocation.toString());
+//
+//       // Will animate the GoogleMap camera, taking us to the selected position with an appropriate zoom
+//       final GoogleMapController controller = await mapController.future;
+//       controller
+//           .animateCamera(CameraUpdate.newLatLng(geolocation.coordinates));
+//       controller
+//           .animateCamera(CameraUpdate.newLatLngBounds(geolocation.bounds, 0));
+//     },
+//   );
+// }
 }
 
 class SnackBarPage extends StatelessWidget {
