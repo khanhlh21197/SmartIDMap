@@ -55,8 +55,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     // mqttClientWrapper.prepareMqttClient(Constants.mac);
 
     sharedPrefsHelper = SharedPrefsHelper();
-    // _emailController.text = sharedPrefsHelper.getStringValuesSF('email');
-    // _passwordController.text = sharedPrefsHelper.getStringValuesSF('password');
+    getSharedPrefs();
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -64,6 +63,16 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => login(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
+  }
+
+  Future<Null> getSharedPrefs() async {
+    setState(() async {
+      _emailController.text =
+          await sharedPrefsHelper.getStringValuesSF('email');
+      _passwordController.text =
+          await sharedPrefsHelper.getStringValuesSF('password');
+      _switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
+    });
   }
 
   @override
@@ -99,7 +108,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     }
   }
 
-  void login(String message) {
+  Future<void> login(String message) async {
     Map responseMap = jsonDecode(message);
 
     if (responseMap['result'] == 'true') {
@@ -110,6 +119,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
       if (_switchValue) {
         sharedPrefsHelper.addStringToSF('email', _emailController.text);
         sharedPrefsHelper.addStringToSF('password', _passwordController.text);
+        await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
       } else {
         sharedPrefsHelper.removeValues();
       }
