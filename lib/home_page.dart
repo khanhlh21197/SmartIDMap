@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,12 +10,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:smartid_map/helper/map_utils.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
-import 'file:///E:/KhanhLH/AndroidStudioProjects/my_first_flutter_project/lib/helper/constants.dart'
-    as Constants;
-
+import 'helper/constants.dart' as Constants;
 import 'helper/mqttClientWrapper.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -34,6 +35,8 @@ class _HomePageState extends State<HomePage>
 
   final Map loginResponse;
   String iduser;
+  List<DropdownMenuItem<String>> _dropdownMenuItems;
+  String _selectedItem = 'Học sinh 1';
 
   MQTTClientWrapper mqttClientWrapper;
 
@@ -87,6 +90,7 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     initMqtt();
+    initDropdown();
     WidgetsBinding.instance.addObserver(this);
     // response = DeviceResponse.fromJson(loginResponse);
     // iduser = response.message;
@@ -103,6 +107,32 @@ class _HomePageState extends State<HomePage>
     // mqttClientWrapper.prepareMqttClient(Constants.mac);
 
     // initMqtt();
+  }
+
+  void initDropdown() {
+    List<String> menu = [
+      'Học sinh 1',
+      'Học sinh 2',
+      'Học sinh 3',
+    ];
+    _dropdownMenuItems = List();
+    for (String li in menu) {
+      _dropdownMenuItems.add(
+        DropdownMenuItem(
+          value: li,
+          child: SizedBox(
+            width: 100,
+            child: Text(
+              li,
+              style:
+                  TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> initMqtt() async {
@@ -133,7 +163,42 @@ class _HomePageState extends State<HomePage>
 
     return MaterialApp(
       title: 'Geolocation Google Maps Demo',
-      home: MapView(),
+      home: Scaffold(
+        appBar: buildAppBar(),
+        body: MapView(),
+      ),
+    );
+  }
+
+  Widget buildAppBar() {
+    return AppBar(
+      actions: [
+        IconButton(
+            icon: Icon(
+              Icons.call,
+              color: Colors.black,
+            ),
+            onPressed: () {}),
+      ],
+      centerTitle: true,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          DropdownButton(
+            value: _selectedItem,
+            items: _dropdownMenuItems,
+            underline: SizedBox(
+              height: 0,
+            ),
+            //underline: SizedBox(),
+            onChanged: (value) {
+              _selectedItem = value;
+              setState(() {});
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -289,6 +354,9 @@ class _MapViewState extends State<MapView> {
 
   Position _currentPosition;
   String _currentAddress;
+  Timer _timer;
+  BitmapDescriptor busMarkerIcon;
+  Uint8List markerIcon;
 
   final startAddressController = TextEditingController();
   final destinationAddressController = TextEditingController();
@@ -385,16 +453,117 @@ class _MapViewState extends State<MapView> {
           _currentPosition.latitude, _currentPosition.longitude);
 
       Placemark place = p[0];
+      print(
+          '${place.subLocality}, ${place.subThoroughfare}, ${place.administrativeArea}, ${place.locality}, ${place.name}, ${place.country}, ${place.position}, ${place.thoroughfare}');
 
+      await _drawBusMarker();
       setState(() {
         _currentAddress =
-            "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
-        startAddressController.text = _currentAddress;
+            "${place.subLocality}, ${place.locality}, ${place.name}, ${place.administrativeArea}";
+        // startAddressController.text = _currentAddress;
         _startAddress = _currentAddress;
       });
     } catch (e) {
       print(e);
     }
+  }
+
+  Future<void> _drawBusMarker() async {
+    var kdLat = 20.985622;
+    var kdLng = 105.842782;
+
+    var ltnLat = 21.0024862199939;
+    var ltnLng = 105.84579083922179;
+
+    var dcvLat = 21.008567440319524;
+    var dcvLng = 105.84720599689345;
+
+    var tdLat = 20.98031823180894;
+    var tdLng = 105.8442862680571;
+
+    List<Position> positions = [
+      Position(
+        latitude: kdLat,
+        longitude: kdLng,
+      ),
+      Position(
+        latitude: ltnLat,
+        longitude: ltnLng,
+      ),
+      Position(
+        latitude: dcvLat,
+        longitude: dcvLng,
+      ),
+      Position(
+        latitude: tdLat,
+        longitude: tdLng,
+      ),
+    ];
+
+    try {
+      Position startCoordinates = Position(
+          latitude: _currentPosition.latitude,
+          longitude: _currentPosition.longitude);
+      int i = 0;
+
+      Marker kdMarker = Marker(
+        markerId: MarkerId('abc'),
+        position: LatLng(
+          positions[i].latitude,
+          positions[i].longitude,
+        ),
+        infoWindow: InfoWindow(
+          title: '57 Kim Đồng',
+          // snippet: _startAddress,
+        ),
+        icon: BitmapDescriptor.fromBytes(markerIcon),
+      );
+
+      markers.add(kdMarker);
+      animateTo(kdLat, kdLng);
+
+      _timer = Timer.periodic(Duration(seconds: 5), (timer) {
+        markers.clear();
+        if (i < positions.length - 1) {
+          i++;
+        } else {
+          i = 0;
+        }
+
+        Marker kdMarker = Marker(
+          markerId: MarkerId('$i'),
+          position: LatLng(
+            positions[i].latitude,
+            positions[i].longitude,
+          ),
+          infoWindow: InfoWindow(
+            title: '57 Kim Đồng',
+            snippet: _startAddress,
+          ),
+          icon: BitmapDescriptor.fromBytes(markerIcon),
+        );
+
+        markers.add(kdMarker);
+        animateTo(kdLat, kdLng);
+
+        print('_MapViewState._drawBusMarker i value: $i');
+        print('_MapViewState._drawBusMarker i value: ${kdMarker.position}');
+      });
+    } catch (e) {
+      print('_MapViewState._drawBusMarker ${e.toString()}');
+    }
+  }
+
+  Future<void> animateTo(double lat, double lng) async {
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(lat, lng),
+          zoom: 18.0,
+        ),
+      ),
+    );
+    print('_MapViewState.animateTo');
   }
 
   // Method for calculating the distance between two places
@@ -577,6 +746,20 @@ class _MapViewState extends State<MapView> {
   void initState() {
     super.initState();
     _getCurrentLocation();
+    ImageConfiguration configuration = ImageConfiguration(
+      size: Size(25, 25),
+    );
+    getBytesFromAsset('assets/bus.png', 75).then((value) {
+      markerIcon = value;
+    });
+    BitmapDescriptor.fromAssetImage(configuration, 'assets/bus.png')
+        .then((value) => busMarkerIcon = value);
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
   }
 
   @override
@@ -591,223 +774,164 @@ class _MapViewState extends State<MapView> {
         body: Stack(
           children: <Widget>[
             // Map View
-            GoogleMap(
-              markers: markers != null ? Set<Marker>.from(markers) : null,
-              initialCameraPosition: _initialLocation,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              mapType: MapType.normal,
-              zoomGesturesEnabled: true,
-              zoomControlsEnabled: false,
-              polylines: Set<Polyline>.of(polylines.values),
-              onMapCreated: (GoogleMapController controller) {
-                mapController = controller;
-              },
-            ),
+            mapWidget(),
             // Show zoom buttons
-            SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 10.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    ClipOval(
-                      child: Material(
-                        color: Colors.blue[100], // button color
-                        child: InkWell(
-                          splashColor: Colors.blue, // inkwell color
-                          child: SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Icon(Icons.add),
-                          ),
-                          onTap: () {
-                            mapController.animateCamera(
-                              CameraUpdate.zoomIn(),
-                            );
-                          },
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 20),
-                    ClipOval(
-                      child: Material(
-                        color: Colors.blue[100], // button color
-                        child: InkWell(
-                          splashColor: Colors.blue, // inkwell color
-                          child: SizedBox(
-                            width: 50,
-                            height: 50,
-                            child: Icon(Icons.remove),
-                          ),
-                          onTap: () {
-                            mapController.animateCamera(
-                              CameraUpdate.zoomOut(),
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
+            zoomWidget(),
             // Show the place input fields & button for
-            // showing the route
-            SafeArea(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white70,
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(20.0),
-                      ),
-                    ),
-                    width: width * 0.9,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Text(
-                            'Places',
-                            style: TextStyle(fontSize: 20.0),
-                          ),
-                          SizedBox(height: 10),
-                          _textField(
-                              label: 'Vị trí của bạn',
-                              hint: 'Chọn điểm bắt đầu',
-                              prefixIcon: Icon(Icons.looks_one),
-                              suffixIcon: IconButton(
-                                icon: Icon(Icons.my_location),
-                                onPressed: () {
-                                  startAddressController.text = _currentAddress;
-                                  _startAddress = _currentAddress;
-                                },
-                              ),
-                              controller: startAddressController,
-                              width: width,
-                              locationCallback: (String value) {
-                                setState(() {
-                                  _startAddress = value;
-                                });
-                              }),
-                          SizedBox(height: 10),
-                          _textField(
-                              label: 'Vị trí xe bus',
-                              hint: 'Chọn điểm đến',
-                              prefixIcon: Icon(Icons.looks_two),
-                              controller: destinationAddressController,
-                              width: width,
-                              locationCallback: (String value) {
-                                setState(() {
-                                  _destinationAddress = value;
-                                });
-                              }),
-                          SizedBox(height: 10),
-                          Visibility(
-                            visible: _placeDistance == null ? false : true,
-                            child: Text(
-                              'Khoảng cách: $_placeDistance km',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          RaisedButton(
-                            onPressed: (_startAddress != '' &&
-                                    _destinationAddress != '')
-                                ? () async {
-                                    setState(() {
-                                      if (markers.isNotEmpty) markers.clear();
-                                      if (polylines.isNotEmpty)
-                                        polylines.clear();
-                                      if (polylineCoordinates.isNotEmpty)
-                                        polylineCoordinates.clear();
-                                      _placeDistance = null;
-                                    });
-
-                                    _calculateDistance().then((isCalculated) {
-                                      if (isCalculated) {
-                                        _scaffoldKey.currentState.showSnackBar(
-                                          SnackBar(
-                                            content: Text(
-                                                'Tính khoảng cách thành công'),
-                                          ),
-                                        );
-                                      } else {
-                                        _scaffoldKey.currentState.showSnackBar(
-                                          SnackBar(
-                                            content: Text('Có lỗi xảy ra'),
-                                          ),
-                                        );
-                                      }
-                                    });
-                                  }
-                                : null,
-                            color: Colors.red,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.0),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'Chỉ đường'.toUpperCase(),
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 20.0,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            // showing the bus info
+            busInfoWidget(width),
             // Show current location button
-            SafeArea(
-              child: Align(
-                alignment: Alignment.bottomRight,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 10.0, bottom: 10.0),
-                  child: ClipOval(
-                    child: Material(
-                      color: Colors.orange[100], // button color
-                      child: InkWell(
-                        splashColor: Colors.orange, // inkwell color
-                        child: SizedBox(
-                          width: 56,
-                          height: 56,
-                          child: Icon(Icons.my_location),
-                        ),
-                        onTap: () {
-                          mapController.animateCamera(
-                            CameraUpdate.newCameraPosition(
-                              CameraPosition(
-                                target: LatLng(
-                                  _currentPosition.latitude,
-                                  _currentPosition.longitude,
-                                ),
-                                zoom: 18.0,
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
+            myLocationWidget(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget mapWidget() {
+    return GoogleMap(
+      markers: markers != null ? Set<Marker>.from(markers) : null,
+      initialCameraPosition: _initialLocation,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      mapType: MapType.normal,
+      zoomGesturesEnabled: true,
+      zoomControlsEnabled: false,
+      polylines: Set<Polyline>.of(polylines.values),
+      onMapCreated: (GoogleMapController controller) {
+        mapController = controller;
+      },
+    );
+  }
+
+  Widget zoomWidget() {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ClipOval(
+              child: Material(
+                color: Colors.blue[100], // button color
+                child: InkWell(
+                  splashColor: Colors.blue, // inkwell color
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Icon(Icons.add),
                   ),
+                  onTap: () {
+                    mapController.animateCamera(
+                      CameraUpdate.zoomIn(),
+                    );
+                  },
                 ),
               ),
             ),
+            SizedBox(height: 20),
+            ClipOval(
+              child: Material(
+                color: Colors.blue[100], // button color
+                child: InkWell(
+                  splashColor: Colors.blue, // inkwell color
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: Icon(Icons.remove),
+                  ),
+                  onTap: () {
+                    mapController.animateCamera(
+                      CameraUpdate.zoomOut(),
+                    );
+                  },
+                ),
+              ),
+            )
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget busInfoWidget(double width) {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 10.0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.all(
+                Radius.circular(20.0),
+              ),
+            ),
+            width: width * 0.9,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/bus.png',
+                        width: 25,
+                        height: 25,
+                        fit: BoxFit.cover,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        '$_currentAddress',
+                        style: TextStyle(fontSize: 20.0),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget myLocationWidget() {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomRight,
+        child: Padding(
+          padding: const EdgeInsets.only(right: 20.0, bottom: 40.0),
+          child: ClipOval(
+            child: Material(
+              color: Colors.orange[100], // button color
+              child: InkWell(
+                splashColor: Colors.orange, // inkwell color
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Icon(Icons.my_location),
+                ),
+                onTap: () {
+                  mapController.animateCamera(
+                    CameraUpdate.newCameraPosition(
+                      CameraPosition(
+                        target: LatLng(
+                          _currentPosition.latitude,
+                          _currentPosition.longitude,
+                        ),
+                        zoom: 18.0,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
         ),
       ),
     );

@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smartid_map/signup.dart';
 
-import 'file:///E:/KhanhLH/AndroidStudioProjects/my_first_flutter_project/lib/helper/constants.dart'
-    as Constants;
+import 'helper/constants.dart' as Constants;
 
 import 'Widget/bezierContainer.dart';
 import 'helper/models.dart';
@@ -414,7 +413,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
                         _title(),
                         SizedBox(height: 50),
                         _emailPasswordWidget(),
-                        _saveSwitch(),
+                        // _saveSwitch(),
                         _submitButton(),
                         Container(
                           padding: EdgeInsets.symmetric(vertical: 10),
