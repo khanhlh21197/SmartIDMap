@@ -1,18 +1,19 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
+import 'package:smartid_map/helper/loader.dart';
+import 'package:smartid_map/helper/models.dart';
+import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/response/device_response.dart';
+import 'package:smartid_map/helper/shared_prefs_helper.dart';
+import 'package:smartid_map/main_screen.dart';
+import 'package:smartid_map/model/user.dart';
+import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/signup.dart';
-
-import 'file:///E:/KhanhLH/AndroidStudioProjects/my_first_flutter_project/lib/helper/constants.dart'
-    as Constants;
-
-import 'Widget/bezierContainer.dart';
-import 'helper/models.dart';
-import 'helper/mqttClientWrapper.dart';
-import 'helper/shared_prefs_helper.dart';
-import 'home_page.dart';
-import 'model/user.dart';
 
 // ignore: must_be_immutable
 class LoginPage extends StatefulWidget {
@@ -20,16 +21,21 @@ class LoginPage extends StatefulWidget {
 
   final String title;
   final User registerUser;
-  String iduser;
 
   @override
   _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
+class _LoginPageState extends State<LoginPage> {
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   bool loading = false;
+  bool _switchValue = false;
+  final GlobalKey<State> _keyLoader = new GlobalKey<State>();
+  String iduser;
+  var status;
+  String playerid = '';
+  bool switchValue = false;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -50,13 +56,34 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     initMqtt();
+    initOneSignal(Constants.one_signal_app_id);
     // mqttClientWrapper =
     //     MQTTClientWrapper(() => print('Success'), (message) => login(message));
     // mqttClientWrapper.prepareMqttClient(Constants.mac);
-
     sharedPrefsHelper = SharedPrefsHelper();
     getSharedPrefs();
-    WidgetsBinding.instance.addObserver(this);
+  }
+
+  void initOneSignal(oneSignalAppId) async {
+    status = await OneSignal.shared.getPermissionSubscriptionState();
+
+    var settings = {
+      OSiOSSettings.autoPrompt: true,
+      OSiOSSettings.inAppLaunchUrl: true
+    };
+    OneSignal.shared.init(oneSignalAppId, iOSSettings: settings);
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
+// will be called whenever a notification is received
+    OneSignal.shared
+        .setNotificationReceivedHandler((OSNotification notification) {
+      print('Received: ' + notification?.payload?.body ?? '');
+    });
+// will be called whenever a notification is opened/button pressed.
+    OneSignal.shared
+        .setNotificationOpenedHandler((OSNotificationOpenedResult result) {
+      print('Opened: ' + result.notification?.payload?.body ?? '');
+    });
   }
 
   Future<void> initMqtt() async {
@@ -65,43 +92,50 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
   }
 
-  Future<Null> getSharedPrefs() async {
-    setState(() async {
-      _emailController.text =
-          await sharedPrefsHelper.getStringValuesSF('email');
-      _passwordController.text =
-          await sharedPrefsHelper.getStringValuesSF('password');
-      _switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
-    });
+  Future<void> getSharedPrefs() async {
+    _emailController.text = await sharedPrefsHelper.getStringValuesSF('email');
+    _passwordController.text =
+        await sharedPrefsHelper.getStringValuesSF('password');
+    _switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
+    if (_emailController.text.isNotEmpty &&
+        _passwordController.text.isNotEmpty) {
+      await _tryLogin();
+    }
   }
 
   @override
   void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
+    _emailController.dispose();
+    _passwordController.dispose();
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    setState(() {
-      if (state == AppLifecycleState.resumed) {
-        mqttClientWrapper = MQTTClientWrapper(
-            () => print('Success'), (message) => login(message));
-        mqttClientWrapper.prepareMqttClient(Constants.mac);
-      }
-    });
   }
 
   Future<void> _tryLogin() async {
     setState(() {
       loading = true;
     });
-    User user = User('02:00:00:00:00:00', _emailController.text,
-        _passwordController.text, '', '', '');
+    Future.delayed(const Duration(seconds: 3), () {
+      if (loading) {
+        hideLoadingDialog();
+        _showToast(context);
+      }
+    });
+    try {
+      playerid = await status.subscriptionStatus.userId;
+    } catch (e) {
+      print('_LoginPageState._tryLogin erorr: ${e.toString()}');
+    }
+    print('_LoginPageState.initOneSignal playerID: $playerid');
+    User user = User(Constants.mac, _emailController.text,
+        _passwordController.text, '', '', '', '', '', playerid);
 
     if (mqttClientWrapper.connectionState ==
         MqttCurrentConnectionState.CONNECTED) {
-      mqttClientWrapper.login(user);
+      if (switchValue) {
+        mqttClientWrapper.patientLogin(user);
+      } else {
+        mqttClientWrapper.login(user);
+      }
     } else {
       await initMqtt();
       mqttClientWrapper.login(user);
@@ -109,26 +143,35 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   Future<void> login(String message) async {
+    hideLoadingDialog();
+    print('_LoginPageState.login $message');
     Map responseMap = jsonDecode(message);
+
+    iduser = DeviceResponse.fromJson(responseMap).message;
+    await sharedPrefsHelper.addStringToSF('iduser', iduser);
 
     if (responseMap['result'] == 'true') {
       setState(() {
         loading = false;
       });
-      print('Register success');
-      if (_switchValue) {
-        sharedPrefsHelper.addStringToSF('email', _emailController.text);
-        sharedPrefsHelper.addStringToSF('password', _passwordController.text);
-        await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
-      } else {
-        sharedPrefsHelper.removeValues();
+      print('Login success');
+      if (_switchValue != null) {
+        if (_switchValue) {
+          await sharedPrefsHelper.addStringToSF('email', _emailController.text);
+          await sharedPrefsHelper.addStringToSF(
+              'password', _passwordController.text);
+          await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
+        } else {
+          await sharedPrefsHelper.removeValues();
+        }
       }
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePage(
-                    loginResponse: responseMap,
-                  )));
+      await sharedPrefsHelper.addStringToSF('email', _emailController.text);
+      await sharedPrefsHelper.addStringToSF(
+          'password', _passwordController.text);
+      await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
+      await sharedPrefsHelper.addBoolToSF('login', true);
+      await sharedPrefsHelper.addIntToSF('quyen', responseMap['quyen']);
+      navigatorPushAndRemoveUntil(context, MainScreen());
     } else {
       this._showToast(context);
       // Scaffold.of(context).showSnackBar(snackbar);
@@ -136,17 +179,8 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   void _showToast(BuildContext context) {
-    final scaffold = Scaffold.of(context);
-    final snackBar = SnackBar(
-      content: Text('Đăng nhập thất bại!'),
-      action: SnackBarAction(
-        label: 'Quay lại',
-        onPressed: () {
-          // Some code to undo the change.
-        },
-      ),
-    );
-    scaffold.showSnackBar(snackBar);
+    Dialogs.showAlertDialog(
+        context, 'Đăng nhập thất bại, vui lòng thử lại sau!');
   }
 
   Widget _backButton() {
@@ -196,15 +230,13 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     );
   }
 
-  bool _switchValue = false;
-
   Widget _saveSwitch() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text("Lưu tài khoản"),
         Switch(
-          value: _switchValue,
+          value: this._switchValue,
           onChanged: (value) {
             setState(() {
               _switchValue = !_switchValue;
@@ -215,14 +247,24 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
     );
   }
 
+  void showLoadingDialog() {
+    Dialogs.showLoadingDialog(context, _keyLoader);
+  }
+
+  void hideLoadingDialog() {
+    Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+  }
+
   Widget _submitButton() {
     return InkWell(
-      onTap: () {
-        _tryLogin();
+      onTap: () async {
+        showLoadingDialog();
+        await _tryLogin();
       },
       child: Container(
         width: MediaQuery.of(context).size.width,
         padding: EdgeInsets.symmetric(vertical: 15),
+        margin: EdgeInsets.symmetric(horizontal: 20),
         alignment: Alignment.center,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -236,7 +278,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             gradient: LinearGradient(
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
-                colors: [Color(0xfffbb448), Color(0xfff7892b)])),
+                colors: [Colors.lightBlueAccent, Colors.blueAccent])),
         child: Text(
           'Đăng nhập',
           style: TextStyle(fontSize: 20, color: Colors.white),
@@ -261,7 +303,6 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
               ),
             ),
           ),
-          Text('Hoặc'),
           Expanded(
             child: Padding(
               padding: EdgeInsets.symmetric(horizontal: 10),
@@ -280,45 +321,37 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
 
   Widget _facebookButton() {
     return Container(
-      height: 50,
-      margin: EdgeInsets.symmetric(vertical: 20),
+      height: 100,
+      margin: EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.all(Radius.circular(10)),
       ),
       child: Row(
         children: <Widget>[
           Expanded(
-            flex: 1,
             child: Container(
               decoration: BoxDecoration(
-                color: Color(0xff1959a9),
-                borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(5),
-                    topLeft: Radius.circular(5)),
-              ),
-              alignment: Alignment.center,
-              child: Text('f',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 25,
-                      fontWeight: FontWeight.w400)),
-            ),
-          ),
-          Expanded(
-            flex: 5,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(0xff2872ba),
+                // color: Color(0xff2872ba),
                 borderRadius: BorderRadius.only(
                     bottomRight: Radius.circular(5),
                     topRight: Radius.circular(5)),
               ),
               alignment: Alignment.center,
-              child: Text('Đăng nhập với Facebook',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w400)),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset(
+                    'assets/images/anco_logo.jpg',
+                  ),
+                  // Text(
+                  //   'Anco',
+                  //   style: TextStyle(
+                  //       color: Colors.white,
+                  //       fontSize: 18,
+                  //       fontWeight: FontWeight.w400),
+                  // ),
+                ],
+              ),
             ),
           ),
         ],
@@ -333,8 +366,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             context, MaterialPageRoute(builder: (context) => SignUpPage()));
       },
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 20),
-        padding: EdgeInsets.all(15),
+        margin: EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.bottomCenter,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -349,7 +381,7 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
             Text(
               'Đăng ký',
               style: TextStyle(
-                  color: Color(0xfff79c4f),
+                  color: Colors.lightBlueAccent,
                   fontSize: 13,
                   fontWeight: FontWeight.w600),
             ),
@@ -360,90 +392,135 @@ class _LoginPageState extends State<LoginPage> with WidgetsBindingObserver {
   }
 
   Widget _title() {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-          text: 'T',
-          style: GoogleFonts.portLligatSans(
-            textStyle: Theme.of(context).textTheme.display1,
-            fontSize: 30,
-            fontWeight: FontWeight.w700,
-            color: Color(0xffe46b10),
-          ),
-          children: [
-            TextSpan(
-              text: 'ech',
-              style: TextStyle(color: Colors.black, fontSize: 30),
-            ),
-            TextSpan(
-              text: 'No',
-              style: TextStyle(color: Color(0xffe46b10), fontSize: 30),
-            ),
-          ]),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Icon(
+        //   Icons.local_fire_department,
+        //   size: 40,
+        //   color: Colors.blue,
+        // ),
+        RichText(
+          textAlign: TextAlign.center,
+          text: TextSpan(
+              text: 'S',
+              style: GoogleFonts.portLligatSans(
+                textStyle: Theme.of(context).textTheme.display1,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+                color: Colors.blue,
+              ),
+              children: [
+                TextSpan(
+                  text: 'mart',
+                  style: TextStyle(color: Colors.black, fontSize: 30),
+                ),
+                TextSpan(
+                  text: 'Home',
+                  style: TextStyle(color: Colors.blue, fontSize: 30),
+                ),
+              ]),
+        ),
+      ],
     );
   }
 
   Widget _emailPasswordWidget() {
-    return Column(
-      children: <Widget>[
-        _entryField("Email", _emailController),
-        _entryField("Mật khẩu", _passwordController, isPassword: true),
-      ],
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: 20,
+      ),
+      child: Column(
+        children: <Widget>[
+          _entryField("Tên đăng nhập", _emailController),
+          _entryField("Mật khẩu", _passwordController, isPassword: true),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
-    return loading
-        ? new Container(
-            color: Colors.transparent,
-            width: MediaQuery.of(context).size.width, //70.0,
-            height: MediaQuery.of(context).size.height, //70.0,
-            child: new Padding(
-                padding: const EdgeInsets.all(5.0),
-                child: new Center(child: new CircularProgressIndicator())),
-          )
-        : Scaffold(
-            body: Container(
-            height: height,
-            child: Stack(
-              children: <Widget>[
-                Positioned(
-                    top: -height * .15,
-                    right: -MediaQuery.of(context).size.width * .4,
-                    child: BezierContainer()),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        SizedBox(height: height * .2),
-                        _title(),
-                        SizedBox(height: 50),
-                        _emailPasswordWidget(),
-                        _saveSwitch(),
-                        _submitButton(),
-                        Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          alignment: Alignment.centerRight,
-                          child: Text('Quên mật khẩu ?',
-                              style: TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w500)),
+    return Scaffold(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Container(
+          height: height,
+          child: Stack(
+            children: <Widget>[
+              // Positioned(
+              //   top: -height * .15,
+              //   right: -MediaQuery.of(context).size.width * .4,
+              //   child: BezierContainer(),
+              // ),
+              Container(
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      // SizedBox(height: height * .2),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(
+                          5,
                         ),
-                        _divider(),
-                        _facebookButton(),
-                        SizedBox(height: height * .055),
-                        _createAccountLabel(),
-                      ],
-                    ),
+                        child: Image.asset(
+                          'assets/images/anco_logo.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      SizedBox(height: 15),
+                      _title(),
+                      SizedBox(height: 50),
+                      _emailPasswordWidget(),
+                      // _saveSwitch(),
+                      _submitButton(),
+                      // switchContainer(),
+                      _divider(),
+                      // _facebookButton(),
+                      _createAccountLabel(),
+                    ],
                   ),
                 ),
-                // Positioned(top: 40, left: 0, child: _backButton()),
-              ],
-            ),
-          ));
+              ),
+              // Positioned(top: 40, left: 0, child: _backButton()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget switchContainer() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            'Quản lý',
+          ),
+          CupertinoSwitch(
+            activeColor: Colors.blue,
+            value: switchValue,
+            onChanged: (value) {
+              setState(() {
+                switchValue = value;
+              });
+            },
+          ),
+          Text(
+            'Bệnh nhân',
+          ),
+        ],
+      ),
+    );
   }
 }

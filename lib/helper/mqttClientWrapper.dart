@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/model/user.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
-import 'package:smartid_map/model/user.dart';
 
 import 'constants.dart' as Constants;
 import 'models.dart';
@@ -16,6 +16,7 @@ class MQTTClientWrapper {
 
   final VoidCallback onConnectedCallback;
   final Function(String) onMessageArrived;
+  Function(String) onSubscribedTopic;
 
   MQTTClientWrapper(this.onConnectedCallback, this.onMessageArrived);
 
@@ -30,9 +31,14 @@ class MQTTClientWrapper {
     _publishMessage(Constants.login_topic, userJson);
   }
 
+  void patientLogin(User user) {
+    String userJson = jsonEncode(user);
+    _publishMessage(Constants.patient_login_topic, userJson);
+  }
+
   void register(User user) {
     String userJson = jsonEncode(user);
-    _publishMessage(Constants.login_topic, userJson);
+    _publishMessage('registeruser', userJson);
   }
 
   void publishMessage(String topic, String message) {
@@ -69,6 +75,23 @@ class MQTTClientWrapper {
     client.onDisconnected = _onDisconnected;
     client.onConnected = _onConnected;
     client.onSubscribed = _onSubscribed;
+  }
+
+  void subscribe(String topic, Function(String) onSubscribeTopic) {
+    print('MQTTClientWrapper::Subscribing to the $topic topic');
+    client.subscribe(topic, MqttQos.atMostOnce);
+    client.updates.listen((List<MqttReceivedMessage<MqttMessage>> c) {
+      final MqttPublishMessage recMess = c[0].payload;
+      final String message =
+          MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+
+      print("MQTTClientWrapper::GOT A NEW MESSAGE $message");
+      if (message != null) {
+        onSubscribeTopic(message);
+      }
+      // LocationData newLocationData = _convertJsonToLocation(message);
+      // if (newLocationData != null) onLocationReceivedCallback(newLocationData);
+    });
   }
 
   void _subscribeToTopic(String topicName) {

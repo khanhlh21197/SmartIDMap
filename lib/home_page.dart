@@ -88,9 +88,9 @@ class _HomePageState extends State<HomePage>
     super.initState();
     initMqtt();
     WidgetsBinding.instance.addObserver(this);
-    // response = DeviceResponse.fromJson(loginResponse);
-    // iduser = response.message;
-    // devices = response.id.map((e) => Device.fromJson(e)).toList();
+    // helper.response = DeviceResponse.fromJson(loginResponse);
+    // iduser = helper.response.message;
+    // devices = helper.response.id.map((e) => Device.fromJson(e)).toList();
     // devices.forEach((element) {
     //   if (element.trangthai == 'BAT') {
     //     element.isEnable = true;
@@ -237,9 +237,9 @@ class _HomePageState extends State<HomePage>
     Map responseMap = jsonDecode(message);
 
     // if (responseMap['result'] == 'true') {
-    //   response = DeviceResponse.fromJson(loginResponse);
+    //   helper.response = DeviceResponse.fromJson(loginResponse);
     //   devices.clear();
-    //   devices = response.id.map((e) => Device.fromJson(e)).toList();
+    //   devices = helper.response.id.map((e) => Device.fromJson(e)).toList();
     //
     //   devices.forEach((element) {
     //     if (element.trangthai == 'BAT') {
