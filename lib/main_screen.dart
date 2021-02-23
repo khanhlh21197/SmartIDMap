@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:smartid_map/add_device_page.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/home_page.dart';
+import 'package:smartid_map/notification_page.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -38,16 +40,14 @@ class _MainScreenState extends State<MainScreen> {
         ),
         label: 'Home',
       ),
-      // BottomNavigationBarItem(
-      //   icon: Icon(
-      //     Icons.list,
-      //   ),
-      //   label: 'Chi tiết',
-      // ),
-      // BottomNavigationBarItem(
-      //   icon: Icon(Icons.add),
-      //   label: 'Thêm',
-      // ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.notifications),
+        label: 'Thông báo',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.add),
+        label: 'Thêm',
+      ),
       BottomNavigationBarItem(
         icon: Icon(
           Icons.account_box_outlined,
@@ -60,8 +60,8 @@ class _MainScreenState extends State<MainScreen> {
   void initWidgetOptions() {
     _widgetOptions = <Widget>[
       HomePage(),
-      // DetailScreen(),
-      // AddScreen(),
+      NotificationScreen(),
+      AddDeviceScreen(),
       UserProfilePage(),
     ];
   }
