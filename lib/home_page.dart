@@ -88,21 +88,6 @@ class _HomePageState extends State<HomePage>
     super.initState();
     initMqtt();
     WidgetsBinding.instance.addObserver(this);
-    // helper.response = DeviceResponse.fromJson(loginResponse);
-    // iduser = helper.response.message;
-    // devices = helper.response.id.map((e) => Device.fromJson(e)).toList();
-    // devices.forEach((element) {
-    //   if (element.trangthai == 'BAT') {
-    //     element.isEnable = true;
-    //   } else {
-    //     element.isEnable = false;
-    //   }
-    // });
-    // mqttClientWrapper =
-    //     MQTTClientWrapper(() => print('Success'), (message) => handle(message));
-    // mqttClientWrapper.prepareMqttClient(Constants.mac);
-
-    // initMqtt();
   }
 
   Future<void> initMqtt() async {
@@ -288,6 +273,7 @@ class _MapViewState extends State<MapView> {
   final Geolocator _geolocator = Geolocator();
 
   Position _currentPosition;
+  Position _busPosition;
   String _currentAddress;
 
   final startAddressController = TextEditingController();
@@ -296,6 +282,7 @@ class _MapViewState extends State<MapView> {
   String _startAddress = '';
   String _destinationAddress = '';
   String _placeDistance;
+  BitmapDescriptor customIcon;
 
   var latTemp = 20.999855;
   var lonTemp = 105.723318;
@@ -414,7 +401,7 @@ class _MapViewState extends State<MapView> {
             ? Position(
                 latitude: _currentPosition.latitude,
                 longitude: _currentPosition.longitude)
-            : startPlacemark[0].position;
+            : _busPosition;
         // Position destinationCoordinates = destinationPlacemark[0].position;
         Position destinationCoordinates =
             Position(latitude: latTemp, longitude: lonTemp);
@@ -449,7 +436,6 @@ class _MapViewState extends State<MapView> {
           icon: BitmapDescriptor.defaultMarker,
         );
 
-        // Adding the markers to the list
         markers.add(startMarker);
         markers.add(destinationMarker);
 
@@ -575,8 +561,102 @@ class _MapViewState extends State<MapView> {
 
   @override
   void initState() {
-    super.initState();
     _getCurrentLocation();
+    _busPosition = Position(
+      latitude: 20.9862851635164,
+      longitude: 105.78253055508404,
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      customIcon = await BitmapDescriptor.fromAssetImage(
+        ImageConfiguration(size: Size(12, 12)),
+        'assets/icons/bus.png',
+      );
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  Future<void> busMoving() async {
+    List<Position> positions = [
+      //
+      Position(
+        latitude: 20.986220258323666,
+        longitude: 105.78295123736535,
+      ),
+      //
+      Position(
+        latitude: 20.98541888371997,
+        longitude: 105.7820285574718,
+      ),
+      //
+      Position(
+        latitude: 20.98484790169856,
+        longitude: 105.78112733525663,
+      ),
+      //
+      Position(
+        latitude: 20.98541888371997,
+        longitude: 105.78068745298496,
+      ),
+      //
+      Position(
+        latitude: 20.986370515572155,
+        longitude: 105.77981841727745,
+      ),
+      //
+      Position(
+        latitude: 20.987282073029398,
+        longitude: 105.77898156807765,
+      ),
+      //
+      Position(
+        latitude: 20.98806340356485,
+        longitude: 105.77983987494925,
+      ),
+      //
+      Position(
+        latitude: 20.988674441274906,
+        longitude: 105.78066599532109,
+      ),
+      //
+      Position(
+        latitude: 20.989495832301422,
+        longitude: 105.78186762495648,
+      ),
+      //
+      Position(
+        latitude: 20.99044743819112,
+        longitude: 105.78320872944974,
+      ),
+      //
+      Position(
+        latitude: 20.991108550336055,
+        longitude: 105.78414213820093,
+      ),
+      //
+      Position(
+        latitude: 20.99230054808303,
+        longitude: 105.78611624401135,
+      ),
+      //
+      Position(
+        latitude: 20.99341240294214,
+        longitude: 105.7883049265339,
+      ),
+    ];
+    for (final position in positions) {
+      await Future.delayed(Duration(seconds: 5));
+      _busPosition = position;
+      markers.clear();
+      markers.add(Marker(
+          markerId: MarkerId(_busPosition.longitude.toString()),
+          position: LatLng(_busPosition.latitude, _busPosition.longitude),
+          // infoWindow: InfoWindow(title: address, snippet: "go here"),
+          icon: customIcon));
+      setState(() {});
+      animateCamera(position);
+    }
   }
 
   @override
@@ -596,7 +676,7 @@ class _MapViewState extends State<MapView> {
             zoomButtons(),
             // Show the place input fields & button for
             // showing the route
-            directContainer(width),
+            // directContainer(width),
             // Show current location button
             currentLocationButton(),
           ],
@@ -606,6 +686,11 @@ class _MapViewState extends State<MapView> {
   }
 
   Widget mapContainer() {
+    print('_MapViewState.mapContainer ${markers.length}');
+    markers.isNotEmpty
+        ? print(
+            '_MapViewState.mapContainer ${markers.elementAt(0).position.toString()}, ${markers.elementAt(0).icon}, ${markers.elementAt(0).markerId}')
+        : print('_MapViewState.mapContainer');
     return GoogleMap(
       markers: markers != null ? Set<Marker>.from(markers) : null,
       initialCameraPosition: _initialLocation,
@@ -617,6 +702,12 @@ class _MapViewState extends State<MapView> {
       polylines: Set<Polyline>.of(polylines.values),
       onMapCreated: (GoogleMapController controller) {
         mapController = controller;
+        markers.add(Marker(
+            markerId: MarkerId(_busPosition.longitude.toString()),
+            position: LatLng(_busPosition.latitude, _busPosition.longitude),
+            // infoWindow: InfoWindow(title: address, snippet: "go here"),
+            icon: customIcon));
+        busMoving();
       },
     );
   }
@@ -808,21 +899,25 @@ class _MapViewState extends State<MapView> {
                   child: Icon(Icons.my_location),
                 ),
                 onTap: () {
-                  mapController.animateCamera(
-                    CameraUpdate.newCameraPosition(
-                      CameraPosition(
-                        target: LatLng(
-                          _currentPosition.latitude,
-                          _currentPosition.longitude,
-                        ),
-                        zoom: 18.0,
-                      ),
-                    ),
-                  );
+                  animateCamera(_currentPosition);
                 },
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  animateCamera(Position position) {
+    mapController.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: LatLng(
+            position.latitude,
+            position.longitude,
+          ),
+          zoom: 18.0,
         ),
       ),
     );

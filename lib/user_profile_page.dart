@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -60,6 +61,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
     getInfoUser();
+    // Timer timer;
+    // timer = Timer.periodic(Duration(seconds: 3), (timer) {
+    //   getInfoUser();
+    // });
   }
 
   void getInfoUser() async {
