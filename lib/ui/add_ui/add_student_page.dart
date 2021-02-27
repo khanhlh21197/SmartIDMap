@@ -40,7 +40,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thêm thiết bị',
+          'Thêm học sinh',
         ),
         centerTitle: true,
       ),
@@ -230,7 +230,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                     studentIdController.text,
                     utf8.encode(studentNameController.text).toString(),
                     phoneNumberController.text,
-                    utf8.encode(addressController.text).toString());
+                    utf8.encode(addressController.text).toString(),
+                    Constants.mac);
                 // ThietBi tb = ThietBi(
                 //   idController.text,
                 //   currentSelectedValue,

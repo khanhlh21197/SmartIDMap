@@ -180,7 +180,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
             context: context,
             builder: (context) => AlertDialog(
               title: new Text(
-                'Xóa thiết bị ?',
+                'Xóa ?',
               ),
               actions: <Widget>[
                 new FlatButton(
@@ -214,7 +214,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
               color: Colors.red,
             ),
             Text(
-              'Xóa thiết bị',
+              'Xóa',
               style: TextStyle(fontSize: 18, color: Colors.red),
             ),
           ],

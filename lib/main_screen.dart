@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'file:///E:/FlutterProjects/SmartIDMap/lib/ui/add_ui/add_page.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/home_page.dart';
 import 'package:smartid_map/notification_page.dart';
+import 'package:smartid_map/ui/manage_page/manage_screen.dart';
 import 'package:smartid_map/user_profile_page.dart';
+
+import 'file:///E:/FlutterProjects/SmartIDMap/lib/ui/add_ui/add_page.dart';
 
 class MainScreen extends StatefulWidget {
   final Map loginResponse;
@@ -41,6 +43,12 @@ class _MainScreenState extends State<MainScreen> {
         label: 'Home',
       ),
       BottomNavigationBarItem(
+        icon: Icon(
+          Icons.error,
+        ),
+        label: 'Quản lý',
+      ),
+      BottomNavigationBarItem(
         icon: Icon(Icons.notifications),
         label: 'Thông báo',
       ),
@@ -60,6 +68,7 @@ class _MainScreenState extends State<MainScreen> {
   void initWidgetOptions() {
     _widgetOptions = <Widget>[
       HomePage(),
+      ManageScreen(),
       NotificationScreen(),
       AddScreen(),
       UserProfilePage(),

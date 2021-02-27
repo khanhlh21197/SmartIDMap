@@ -39,7 +39,7 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thêm thiết bị',
+          'Thêm lái xe',
         ),
         centerTitle: true,
       ),

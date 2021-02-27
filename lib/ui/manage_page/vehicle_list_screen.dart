@@ -5,22 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
-import 'package:smartid_map/model/driver.dart';
 import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/vehicle.dart';
 import 'package:smartid_map/response/device_response.dart';
-import 'package:smartid_map/ui/edit_ui/edit_driver_dialog.dart';
+import 'package:smartid_map/ui/edit_ui/edit_vehicle_dialog.dart';
 
-class DriverListScreen extends StatefulWidget {
+class VehicleListScreen extends StatefulWidget {
   @override
-  _DriverListScreenState createState() => _DriverListScreenState();
+  _VehicleListScreenState createState() => _VehicleListScreenState();
 }
 
-class _DriverListScreenState extends State<DriverListScreen> {
-  static const GET_DRIVER = 'getlaixe';
+class _VehicleListScreenState extends State<VehicleListScreen> {
+  static const GET_VEHICLE = 'getXe';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
-  List<Driver> drivers = List();
+  List<Vehicle> vehicles = List();
   MQTTClientWrapper mqttClientWrapper;
 
   String pubTopic;
@@ -37,12 +37,12 @@ class _DriverListScreenState extends State<DriverListScreen> {
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getDrivers();
+    getVehicles();
   }
 
-  void getDrivers() async {
+  void getVehicles() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_DRIVER;
+    pubTopic = GET_VEHICLE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -133,11 +133,11 @@ class _DriverListScreenState extends State<DriverListScreen> {
         children: [
           buildTextLabel('STT', 1),
           verticalLine(),
-          buildTextLabel('Tên', 4),
+          buildTextLabel('Mã xe', 4),
           verticalLine(),
-          buildTextLabel('SĐT', 2),
+          buildTextLabel('Biển số', 2),
           verticalLine(),
-          buildTextLabel('Địa chỉ', 2),
+          buildTextLabel('Loại xe', 2),
         ],
       ),
     );
@@ -146,7 +146,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
   Widget buildTextLabel(String data, int flexValue) {
     return Expanded(
       child: Text(
-        data,
+        data ?? '',
         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
@@ -160,7 +160,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
         child: ListView.builder(
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
-          itemCount: drivers.length,
+          itemCount: vehicles.length,
           itemBuilder: (context, index) {
             return itemView(index);
           },
@@ -180,13 +180,13 @@ class _DriverListScreenState extends State<DriverListScreen> {
                     borderRadius: BorderRadius.circular(10.0)),
                 //this right here
                 child: Container(
-                  child: EditDriverDialog(
-                    driver: drivers[index],
+                  child: EditVehicleDialog(
+                    vehicle: vehicles[index],
                     deleteCallback: (param) {
-                      getDrivers();
+                      getVehicles();
                     },
                     updateCallback: (updatedDevice) {
-                      getDrivers();
+                      getVehicles();
                     },
                   ),
                 ),
@@ -208,11 +208,11 @@ class _DriverListScreenState extends State<DriverListScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(drivers[index].tenDecode, 4),
+                  buildTextData(vehicles[index].maxe, 4),
                   verticalLine(),
-                  buildTextData(drivers[index].sdt, 2),
+                  buildTextData(vehicles[index].bienso, 2),
                   verticalLine(),
-                  buildTextData('${drivers[index].nhaDecode}', 2),
+                  buildTextData('${vehicles[index].loaixe}', 2),
                 ],
               ),
             ),
@@ -226,7 +226,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
   Widget buildTextData(String data, int flexValue) {
     return Expanded(
       child: Text(
-        data ?? '',
+        data,
         style: TextStyle(fontSize: 14),
         textAlign: TextAlign.center,
       ),
@@ -275,7 +275,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
 
   void removeDevice(int index) async {
     setState(() {
-      drivers.removeAt(index);
+      vehicles.removeAt(index);
     });
   }
 
@@ -284,8 +284,8 @@ class _DriverListScreenState extends State<DriverListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_DRIVER:
-        drivers = response.id.map((e) => Driver.fromJson(e)).toList();
+      case GET_VEHICLE:
+        vehicles = response.id.map((e) => Vehicle.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();
         break;

@@ -30,11 +30,11 @@ class _AddScreenState extends State<AddScreen> {
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
 
-  bool isLoading = true;
+  bool isLoading = false;
 
   @override
   void initState() {
-    showLoadingDialog();
+    // showLoadingDialog();
     initMqtt();
     super.initState();
   }

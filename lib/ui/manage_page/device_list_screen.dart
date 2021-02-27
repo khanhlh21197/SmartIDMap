@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/response/device_response.dart';
-
-import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/ui/edit_ui/edit_device_dialog.dart';
 
 class DeviceListScreen extends StatefulWidget {
@@ -17,7 +16,7 @@ class DeviceListScreen extends StatefulWidget {
 }
 
 class _DeviceListScreenState extends State<DeviceListScreen> {
-  static const LOGIN_DEVICE = 'loginthietbi';
+  static const GET_DEVICE = 'gettb';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
@@ -25,9 +24,6 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   MQTTClientWrapper mqttClientWrapper;
 
   String pubTopic;
-  int selectedIndex;
-  List<Department> departments = List();
-  var dropDownItems = [''];
 
   bool isLoading = true;
 
@@ -46,7 +42,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   void getDevices() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = LOGIN_DEVICE;
+    pubTopic = GET_DEVICE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -99,6 +95,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return isLoading ? Center(child: CircularProgressIndicator()) : buildBody();
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -116,6 +113,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   Widget buildBody() {
     return Container(
+      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -137,9 +135,6 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
           verticalLine(),
           buildTextLabel('Mã', 4),
           verticalLine(),
-          buildTextLabel('Mã khoa', 2),
-          verticalLine(),
-          buildTextLabel('Ngưỡng', 2),
         ],
       ),
     );
@@ -149,7 +144,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     return Expanded(
       child: Text(
         data,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
       flex: flexValue,
@@ -183,8 +178,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                 //this right here
                 child: Container(
                   child: EditDeviceDialog(
-                    thietbi: tbs[selectedIndex],
-                    dropDownItems: dropDownItems,
+                    thietbi: tbs[index],
                     deleteCallback: (param) {
                       getDevices();
                     },
@@ -211,11 +205,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(tbs[index].mathietbi, 4),
-                  verticalLine(),
-                  buildTextData(tbs[index].makhoa, 2),
-                  verticalLine(),
-                  buildTextData('${tbs[index].nguong}\u2103', 2),
+                  buildTextData(tbs[index].matb, 4),
                 ],
               ),
             ),
@@ -229,8 +219,8 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   Widget buildTextData(String data, int flexValue) {
     return Expanded(
       child: Text(
-        data,
-        style: TextStyle(fontSize: 18),
+        data ?? '',
+        style: TextStyle(fontSize: 14),
         textAlign: TextAlign.center,
       ),
       flex: flexValue,
@@ -287,7 +277,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case LOGIN_DEVICE:
+      case GET_DEVICE:
         tbs = response.id.map((e) => ThietBi.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

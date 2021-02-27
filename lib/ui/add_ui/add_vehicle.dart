@@ -41,7 +41,7 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thêm thiết bị',
+          'Thêm xe',
         ),
         centerTitle: true,
       ),
@@ -251,7 +251,8 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
                     driverIdController.text,
                     monitorIdController.text,
                     deviceIdController.text,
-                    licensePlateController.text);
+                    licensePlateController.text,
+                    Constants.mac);
                 publishMessage('registerXe', jsonEncode(v));
               },
               color: Colors.blue,

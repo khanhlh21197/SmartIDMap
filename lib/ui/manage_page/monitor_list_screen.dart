@@ -8,6 +8,7 @@ import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/model/monitor.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/response/device_response.dart';
+import 'package:smartid_map/ui/edit_ui/edit_monitor_dialog.dart';
 
 class MonitorListScreen extends StatefulWidget {
   @override
@@ -23,7 +24,6 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
   MQTTClientWrapper mqttClientWrapper;
 
   String pubTopic;
-  int selectedIndex;
 
   bool isLoading = true;
 
@@ -37,10 +37,10 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getDevices();
+    getMonitors();
   }
 
-  void getDevices() async {
+  void getMonitors() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_MONITOR;
     publishMessage(pubTopic, jsonEncode(t));
@@ -95,23 +95,12 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text('Danh sách thiết bị'),
-          centerTitle: true,
-        ),
-        body: isLoading
-            ? Center(child: CircularProgressIndicator())
-            : buildBody(),
-      ),
-    );
+    return isLoading ? Center(child: CircularProgressIndicator()) : buildBody();
   }
 
   Widget buildBody() {
     return Container(
+      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -131,11 +120,11 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
         children: [
           buildTextLabel('STT', 1),
           verticalLine(),
-          buildTextLabel('Mã', 4),
+          buildTextLabel('Tên', 4),
           verticalLine(),
-          buildTextLabel('Mã khoa', 2),
+          buildTextLabel('SĐT', 2),
           verticalLine(),
-          buildTextLabel('Ngưỡng', 2),
+          buildTextLabel('Địa chỉ', 2),
         ],
       ),
     );
@@ -145,7 +134,7 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
     return Expanded(
       child: Text(
         data,
-        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
         textAlign: TextAlign.center,
       ),
       flex: flexValue,
@@ -170,6 +159,26 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
   Widget itemView(int index) {
     return InkWell(
       onTap: () async {
+        await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                //this right here
+                child: Container(
+                  child: EditMonitorDialog(
+                    monitor: monitors[index],
+                    deleteCallback: (param) {
+                      getMonitors();
+                    },
+                    updateCallback: (updatedDevice) {
+                      getMonitors();
+                    },
+                  ),
+                ),
+              );
+            });
         // selectedIndex = index;
         // Department d = Department('', '', Constants.mac);
         // pubTopic = GET_DEPARTMENT;
@@ -204,8 +213,8 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
   Widget buildTextData(String data, int flexValue) {
     return Expanded(
       child: Text(
-        data,
-        style: TextStyle(fontSize: 18),
+        data ?? '',
+        style: TextStyle(fontSize: 14),
         textAlign: TextAlign.center,
       ),
       flex: flexValue,

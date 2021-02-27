@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:smartid_map/helper/Widget/bezierContainer.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
+import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/login_page.dart';
 import 'package:smartid_map/model/user.dart';
@@ -37,31 +38,14 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   void initState() {
-    mqttClientWrapper = MQTTClientWrapper(
-        () => print('Success'), (message) => register(message));
-    mqttClientWrapper.prepareMqttClient(Constants.mac);
+    initMqtt();
     super.initState();
   }
 
-  Widget _backButton() {
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context);
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.only(left: 0, top: 10, bottom: 10),
-              child: Icon(Icons.keyboard_arrow_left, color: Colors.black),
-            ),
-            Text('Back',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500))
-          ],
-        ),
-      ),
-    );
+  Future<void> initMqtt() async {
+    mqttClientWrapper = MQTTClientWrapper(
+        () => print('Success'), (message) => register(message));
+    await mqttClientWrapper.prepareMqttClient(Constants.mac);
   }
 
   Widget _entryField(String title, TextEditingController _controller,
@@ -280,6 +264,11 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
+      appBar: AppBar(
+        title: Text('Đăng ký'),
+        centerTitle: true,
+        automaticallyImplyLeading: true,
+      ),
       body: Container(
         height: height,
         child: Stack(
@@ -312,7 +301,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
               ),
             ),
-            Positioned(top: 40, left: 0, child: _backButton()),
           ],
         ),
       ),
@@ -331,7 +319,7 @@ class _SignUpPageState extends State<SignUpPage> {
       '',
       '',
     );
-    mqttClientWrapper.register(registerUser);
+    mqttClientWrapper.publishMessage('registeruser', jsonEncode(registerUser));
   }
 
   register(String message) {
@@ -347,6 +335,16 @@ class _SignUpPageState extends State<SignUpPage> {
                   )));
     } else {
       _showToast(context);
+    }
+  }
+
+  Future<void> publishMessage(String topic, String message) async {
+    if (mqttClientWrapper.connectionState ==
+        MqttCurrentConnectionState.CONNECTED) {
+      mqttClientWrapper.publishMessage(topic, message);
+    } else {
+      await initMqtt();
+      mqttClientWrapper.publishMessage(topic, message);
     }
   }
 

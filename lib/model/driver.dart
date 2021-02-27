@@ -47,4 +47,12 @@ class Driver {
         nha = json['nha'],
         malx = json['malx'],
         mac = json['mac'];
+
+  Map<String, dynamic> toJson() => {
+        'ten': ten,
+        'sdt': sdt,
+        'nha': nha,
+        'malx': malx,
+        'mac': mac,
+      };
 }

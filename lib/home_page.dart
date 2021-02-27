@@ -10,7 +10,6 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/secrets.dart';
-import 'package:smartid_map/user_profile_page.dart';
 
 import 'helper/mqttClientWrapper.dart';
 

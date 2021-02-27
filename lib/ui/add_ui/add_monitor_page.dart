@@ -40,7 +40,7 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thêm thiết bị',
+          'Thêm giám sát',
         ),
         centerTitle: true,
       ),
@@ -80,13 +80,13 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
                   'SĐT',
                   Icon(Icons.phone_android),
                   TextInputType.text,
-                  nameController,
+                  phoneNumberController,
                 ),
                 buildTextField(
                   'Địa chỉ',
                   Icon(Icons.phone_android),
                   TextInputType.text,
-                  nameController,
+                  addressController,
                 ),
                 // buildTextField(
                 //   'Khu vực',

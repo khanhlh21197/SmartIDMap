@@ -40,7 +40,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Thêm thiết bị',
+          'Thêm tuyến xe',
         ),
         centerTitle: true,
       ),
@@ -237,8 +237,9 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   utf8.encode(busNameController.text).toString(),
                   vehicleIdController.text,
                   utf8.encode(noteController.text).toString(),
+                  Constants.mac,
                 );
-                publishMessage('registerthietbi', jsonEncode(b));
+                publishMessage('registerTuyenxe', jsonEncode(b));
               },
               color: Colors.blue,
               child: Text('Lưu'),

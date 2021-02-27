@@ -5,36 +5,39 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/vehicle.dart';
 
-class EditDeviceDialog extends StatefulWidget {
-  final ThietBi thietbi;
+class EditVehicleDialog extends StatefulWidget {
+  final Vehicle vehicle;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
 
-  const EditDeviceDialog(
-      {Key key, this.thietbi, this.updateCallback, this.deleteCallback})
+  const EditVehicleDialog(
+      {Key key, this.vehicle, this.updateCallback, this.deleteCallback})
       : super(key: key);
 
   @override
-  _EditDeviceDialogState createState() => _EditDeviceDialogState();
+  _EditVehicleDialogState createState() => _EditVehicleDialogState();
 }
 
-class _EditDeviceDialogState extends State<EditDeviceDialog> {
-  static const UPDATE_DEVICE = 'updatethietbi';
-  static const DELETE_DEVICE = 'deletethietbi';
+class _EditVehicleDialogState extends State<EditVehicleDialog> {
+  static const UPDATE_VEHICLE = 'updateXe';
+  static const DELETE_VEHICLE = 'deleteXe';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
-  final idController = TextEditingController();
-  final thresholdController = TextEditingController();
-  final timeController = TextEditingController();
+  final monitorIdController = TextEditingController();
+  final driverIdController = TextEditingController();
+  final deviceIdController = TextEditingController();
+  final vehicleIdController = TextEditingController();
+  final vehicleTypeController = TextEditingController();
+  final licensePlateController = TextEditingController();
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   String pubTopic = '';
   String currentSelectedValue;
-  ThietBi updatedDevice;
+  Vehicle updatedVehicle;
 
   @override
   void initState() {
@@ -53,10 +56,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_DEVICE:
-          widget.updateCallback(updatedDevice);
+        case UPDATE_VEHICLE:
+          widget.updateCallback(updatedVehicle);
           break;
-        case DELETE_DEVICE:
+        case DELETE_VEHICLE:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -65,10 +68,11 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   void initController() async {
-    idController.text = widget.thietbi.matb;
-    currentSelectedValue = widget.thietbi.makhoa;
-    timeController.text = widget.thietbi.thoigian;
-    thresholdController.text = widget.thietbi.nguong;
+    monitorIdController.text = widget.vehicle.mags;
+    driverIdController.text = widget.vehicle.malx;
+    deviceIdController.text = widget.vehicle.matb;
+    vehicleIdController.text = widget.vehicle.maxe;
+    vehicleTypeController.text = widget.vehicle.loaixe;
   }
 
   @override
@@ -89,22 +93,40 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildTextField(
-                  'Mã',
+                  'Mã xe',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
-                  idController,
+                  vehicleIdController,
                 ),
                 buildTextField(
-                  'Ngưỡng',
+                  'Loại xe',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  thresholdController,
+                  vehicleTypeController,
                 ),
                 buildTextField(
-                  'Thời gian',
+                  'Biển số',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  timeController,
+                  licensePlateController,
+                ),
+                buildTextField(
+                  'Mã giám sát',
+                  Icon(Icons.vpn_key),
+                  TextInputType.number,
+                  monitorIdController,
+                ),
+                buildTextField(
+                  'Mã lái xe',
+                  Icon(Icons.vpn_key),
+                  TextInputType.number,
+                  driverIdController,
+                ),
+                buildTextField(
+                  'Mã thiết bị',
+                  Icon(Icons.vpn_key),
+                  TextInputType.number,
+                  deviceIdController,
                 ),
                 deleteButton(),
                 buildButton(),
@@ -185,10 +207,16 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_DEVICE;
-                    var d = ThietBi(
-                        widget.thietbi.matb, '', '', '', '', Constants.mac);
-                    publishMessage(pubTopic, jsonEncode(d));
+                    pubTopic = DELETE_VEHICLE;
+                    var v = Vehicle(
+                        widget.vehicle.maxe,
+                        '',
+                        widget.vehicle.malx,
+                        widget.vehicle.mags,
+                        widget.vehicle.matb,
+                        widget.vehicle.bienso,
+                        Constants.mac);
+                    publishMessage(pubTopic, jsonEncode(v));
                   },
                   child: new Text(
                     'Đồng ý',
@@ -248,16 +276,16 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   Future<void> _tryEdit() async {
-    updatedDevice = ThietBi(
-      idController.text,
-      currentSelectedValue,
-      '',
-      thresholdController.text,
-      timeController.text,
-      Constants.mac,
-    );
-    pubTopic = UPDATE_DEVICE;
-    publishMessage(pubTopic, jsonEncode(updatedDevice));
+    updatedVehicle = Vehicle(
+        vehicleIdController.text,
+        vehicleTypeController.text,
+        driverIdController.text,
+        monitorIdController.text,
+        deviceIdController.text,
+        licensePlateController.text,
+        Constants.mac);
+    pubTopic = UPDATE_VEHICLE;
+    publishMessage(pubTopic, jsonEncode(updatedVehicle));
   }
 
   Future<void> publishMessage(String topic, String message) async {
@@ -273,9 +301,12 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   @override
   void dispose() {
     scrollController.dispose();
-    idController.dispose();
-    timeController.dispose();
-    thresholdController.dispose();
+    monitorIdController.dispose();
+    driverIdController.dispose();
+    deviceIdController.dispose();
+    vehicleIdController.dispose();
+    vehicleTypeController.dispose();
+    licensePlateController.dispose();
     super.dispose();
   }
 }

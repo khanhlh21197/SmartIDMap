@@ -47,4 +47,12 @@ class Monitor {
         nha = json['nha'],
         mags = json['mags'],
         mac = json['mac'];
+
+  Map<String, dynamic> toJson() => {
+        'ten': ten,
+        'sdt': sdt,
+        'nha': nha,
+        'mags': mags,
+        'mac': mac,
+      };
 }

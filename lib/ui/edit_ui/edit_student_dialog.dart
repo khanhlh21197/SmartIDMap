@@ -5,36 +5,37 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/student.dart';
 
-class EditDeviceDialog extends StatefulWidget {
-  final ThietBi thietbi;
+class EditStudentDialog extends StatefulWidget {
+  final Student student;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
 
-  const EditDeviceDialog(
-      {Key key, this.thietbi, this.updateCallback, this.deleteCallback})
+  const EditStudentDialog(
+      {Key key, this.student, this.updateCallback, this.deleteCallback})
       : super(key: key);
 
   @override
-  _EditDeviceDialogState createState() => _EditDeviceDialogState();
+  _EditStudentDialogState createState() => _EditStudentDialogState();
 }
 
-class _EditDeviceDialogState extends State<EditDeviceDialog> {
-  static const UPDATE_DEVICE = 'updatethietbi';
-  static const DELETE_DEVICE = 'deletethietbi';
+class _EditStudentDialogState extends State<EditStudentDialog> {
+  static const UPDATE_STUDENT = 'updateHS';
+  static const DELETE_STUDENT = 'deleteHS';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
-  final idController = TextEditingController();
-  final thresholdController = TextEditingController();
-  final timeController = TextEditingController();
+  final studentNameController = TextEditingController();
+  final studentIdController = TextEditingController();
+  final phoneNumberController = TextEditingController();
+  final addressController = TextEditingController();
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   String pubTopic = '';
   String currentSelectedValue;
-  ThietBi updatedDevice;
+  Student updatedStudent;
 
   @override
   void initState() {
@@ -53,10 +54,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_DEVICE:
-          widget.updateCallback(updatedDevice);
+        case UPDATE_STUDENT:
+          widget.updateCallback(updatedStudent);
           break;
-        case DELETE_DEVICE:
+        case DELETE_STUDENT:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -65,10 +66,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   void initController() async {
-    idController.text = widget.thietbi.matb;
-    currentSelectedValue = widget.thietbi.makhoa;
-    timeController.text = widget.thietbi.thoigian;
-    thresholdController.text = widget.thietbi.nguong;
+    studentNameController.text = widget.student.tenDecode;
+    studentIdController.text = widget.student.mahs;
+    phoneNumberController.text = widget.student.sdt;
+    addressController.text = widget.student.nhaDecode;
   }
 
   @override
@@ -89,22 +90,28 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildTextField(
-                  'Mã',
+                  'Mã hs',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
-                  idController,
+                  studentIdController,
                 ),
                 buildTextField(
-                  'Ngưỡng',
+                  'Tên hs',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  thresholdController,
+                  studentNameController,
                 ),
                 buildTextField(
-                  'Thời gian',
+                  'SĐT',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  timeController,
+                  phoneNumberController,
+                ),
+                buildTextField(
+                  'Địa chỉ',
+                  Icon(Icons.vpn_key),
+                  TextInputType.number,
+                  addressController,
                 ),
                 deleteButton(),
                 buildButton(),
@@ -185,10 +192,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_DEVICE;
-                    var d = ThietBi(
-                        widget.thietbi.matb, '', '', '', '', Constants.mac);
-                    publishMessage(pubTopic, jsonEncode(d));
+                    pubTopic = DELETE_STUDENT;
+                    var s =
+                        Student(widget.student.mahs, '', '', '', Constants.mac);
+                    publishMessage(pubTopic, jsonEncode(s));
                   },
                   child: new Text(
                     'Đồng ý',
@@ -248,16 +255,14 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   Future<void> _tryEdit() async {
-    updatedDevice = ThietBi(
-      idController.text,
-      currentSelectedValue,
-      '',
-      thresholdController.text,
-      timeController.text,
-      Constants.mac,
-    );
-    pubTopic = UPDATE_DEVICE;
-    publishMessage(pubTopic, jsonEncode(updatedDevice));
+    updatedStudent = Student(
+        studentIdController.text,
+        utf8.encode(studentNameController.text).toString(),
+        phoneNumberController.text,
+        utf8.encode(addressController.text).toString(),
+        Constants.mac);
+    pubTopic = UPDATE_STUDENT;
+    publishMessage(pubTopic, jsonEncode(updatedStudent));
   }
 
   Future<void> publishMessage(String topic, String message) async {
@@ -273,9 +278,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   @override
   void dispose() {
     scrollController.dispose();
-    idController.dispose();
-    timeController.dispose();
-    thresholdController.dispose();
+    studentNameController.dispose();
+    studentIdController.dispose();
+    phoneNumberController.dispose();
+    addressController.dispose();
     super.dispose();
   }
 }

@@ -2,15 +2,16 @@ import 'dart:convert';
 
 class Bus {
   String matx;
-  String tentx;
+  String tentuyen;
   String maxe;
-  String ghichu;
+  String note;
+  String mac;
 
-  Bus(this.matx, this.tentx, this.maxe, this.ghichu);
+  Bus(this.matx, this.tentuyen, this.maxe, this.note, this.mac);
 
   String get tenDecode {
     try {
-      String s = tentx;
+      String s = tentuyen;
       List<int> ints = List();
       s = s.replaceAll('[', '');
       s = s.replaceAll(']', '');
@@ -20,13 +21,13 @@ class Bus {
       }
       return utf8.decode(ints);
     } catch (e) {
-      return tentx;
+      return tentuyen;
     }
   }
 
   String get ghichuDecode {
     try {
-      String s = ghichu;
+      String s = note;
       List<int> ints = List();
       s = s.replaceAll('[', '');
       s = s.replaceAll(']', '');
@@ -36,7 +37,24 @@ class Bus {
       }
       return utf8.decode(ints);
     } catch (e) {
-      return ghichu;
+      return note;
     }
+  }
+
+  Bus.fromJson(Map<String, dynamic> json)
+      : matx = json['matx'],
+        tentuyen = json['tentuyen'],
+        maxe = json['maxe'],
+        note = json['note'],
+        mac = json['mac'];
+
+  Map<String, dynamic> toJson() {
+    return {
+      'matx': matx,
+      'tentuyen': tentuyen,
+      'maxe': maxe,
+      'note': note,
+      'mac': mac,
+    };
   }
 }

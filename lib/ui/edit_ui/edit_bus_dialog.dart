@@ -5,36 +5,37 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/bus.dart';
 
-class EditDeviceDialog extends StatefulWidget {
-  final ThietBi thietbi;
+class EditBusDialog extends StatefulWidget {
+  final Bus bus;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
 
-  const EditDeviceDialog(
-      {Key key, this.thietbi, this.updateCallback, this.deleteCallback})
+  const EditBusDialog(
+      {Key key, this.bus, this.updateCallback, this.deleteCallback})
       : super(key: key);
 
   @override
-  _EditDeviceDialogState createState() => _EditDeviceDialogState();
+  _EditBusDialogState createState() => _EditBusDialogState();
 }
 
-class _EditDeviceDialogState extends State<EditDeviceDialog> {
-  static const UPDATE_DEVICE = 'updatethietbi';
-  static const DELETE_DEVICE = 'deletethietbi';
+class _EditBusDialogState extends State<EditBusDialog> {
+  static const UPDATE_BUS = 'updateTuyenxe';
+  static const DELETE_BUS = 'deleteTuyenxe';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
-  final idController = TextEditingController();
-  final thresholdController = TextEditingController();
-  final timeController = TextEditingController();
+  final busNameController = TextEditingController();
+  final busIdController = TextEditingController();
+  final vehicleIdController = TextEditingController();
+  final noteController = TextEditingController();
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   String pubTopic = '';
   String currentSelectedValue;
-  ThietBi updatedDevice;
+  Bus updatedBus;
 
   @override
   void initState() {
@@ -53,10 +54,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_DEVICE:
-          widget.updateCallback(updatedDevice);
+        case UPDATE_BUS:
+          widget.updateCallback(updatedBus);
           break;
-        case DELETE_DEVICE:
+        case DELETE_BUS:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -65,10 +66,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   void initController() async {
-    idController.text = widget.thietbi.matb;
-    currentSelectedValue = widget.thietbi.makhoa;
-    timeController.text = widget.thietbi.thoigian;
-    thresholdController.text = widget.thietbi.nguong;
+    busNameController.text = widget.bus.tenDecode;
+    busIdController.text = widget.bus.matx;
+    vehicleIdController.text = widget.bus.maxe;
+    noteController.text = widget.bus.ghichuDecode;
   }
 
   @override
@@ -89,22 +90,28 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildTextField(
-                  'Mã',
+                  'Mã tuyến xe',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
-                  idController,
+                  busIdController,
                 ),
                 buildTextField(
-                  'Ngưỡng',
+                  'Tên tuyến xe',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  thresholdController,
+                  busNameController,
                 ),
                 buildTextField(
-                  'Thời gian',
+                  'Mã xe',
                   Icon(Icons.vpn_key),
                   TextInputType.number,
-                  timeController,
+                  vehicleIdController,
+                ),
+                buildTextField(
+                  'Ghi chú',
+                  Icon(Icons.vpn_key),
+                  TextInputType.number,
+                  noteController,
                 ),
                 deleteButton(),
                 buildButton(),
@@ -185,10 +192,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_DEVICE;
-                    var d = ThietBi(
-                        widget.thietbi.matb, '', '', '', '', Constants.mac);
-                    publishMessage(pubTopic, jsonEncode(d));
+                    pubTopic = DELETE_BUS;
+                    var b = Bus(widget.bus.matx, '', widget.bus.maxe, '',
+                        Constants.mac);
+                    publishMessage(pubTopic, jsonEncode(b));
                   },
                   child: new Text(
                     'Đồng ý',
@@ -248,16 +255,14 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   }
 
   Future<void> _tryEdit() async {
-    updatedDevice = ThietBi(
-      idController.text,
-      currentSelectedValue,
-      '',
-      thresholdController.text,
-      timeController.text,
-      Constants.mac,
-    );
-    pubTopic = UPDATE_DEVICE;
-    publishMessage(pubTopic, jsonEncode(updatedDevice));
+    updatedBus = Bus(
+        busIdController.text,
+        utf8.encode(busNameController.text).toString(),
+        vehicleIdController.text,
+        utf8.encode(noteController.text).toString(),
+        Constants.mac);
+    pubTopic = UPDATE_BUS;
+    publishMessage(pubTopic, jsonEncode(updatedBus));
   }
 
   Future<void> publishMessage(String topic, String message) async {
@@ -273,9 +278,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
   @override
   void dispose() {
     scrollController.dispose();
-    idController.dispose();
-    timeController.dispose();
-    thresholdController.dispose();
+    busNameController.dispose();
+    busIdController.dispose();
+    vehicleIdController.dispose();
+    noteController.dispose();
     super.dispose();
   }
 }

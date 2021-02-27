@@ -5,22 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
-import 'package:smartid_map/model/driver.dart';
+import 'package:smartid_map/model/bus.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/response/device_response.dart';
-import 'package:smartid_map/ui/edit_ui/edit_driver_dialog.dart';
+import 'package:smartid_map/ui/edit_ui/edit_bus_dialog.dart';
 
-class DriverListScreen extends StatefulWidget {
+class BusListScreen extends StatefulWidget {
   @override
-  _DriverListScreenState createState() => _DriverListScreenState();
+  _BusListScreenState createState() => _BusListScreenState();
 }
 
-class _DriverListScreenState extends State<DriverListScreen> {
-  static const GET_DRIVER = 'getlaixe';
+class _BusListScreenState extends State<BusListScreen> {
+  static const GET_BUS = 'getTuyenxe';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
-  List<Driver> drivers = List();
+  List<Bus> buses = List();
   MQTTClientWrapper mqttClientWrapper;
 
   String pubTopic;
@@ -37,12 +37,12 @@ class _DriverListScreenState extends State<DriverListScreen> {
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getDrivers();
+    getDevices();
   }
 
-  void getDrivers() async {
+  void getDevices() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_DRIVER;
+    pubTopic = GET_BUS;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -96,6 +96,9 @@ class _DriverListScreenState extends State<DriverListScreen> {
   @override
   Widget build(BuildContext context) {
     return isLoading ? Center(child: CircularProgressIndicator()) : buildBody();
+  }
+
+  Widget _willPop() {
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Scaffold(
@@ -135,9 +138,9 @@ class _DriverListScreenState extends State<DriverListScreen> {
           verticalLine(),
           buildTextLabel('Tên', 4),
           verticalLine(),
-          buildTextLabel('SĐT', 2),
+          buildTextLabel('Mã', 2),
           verticalLine(),
-          buildTextLabel('Địa chỉ', 2),
+          buildTextLabel('Ghi chú', 2),
         ],
       ),
     );
@@ -160,7 +163,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
         child: ListView.builder(
           scrollDirection: Axis.vertical,
           shrinkWrap: true,
-          itemCount: drivers.length,
+          itemCount: buses.length,
           itemBuilder: (context, index) {
             return itemView(index);
           },
@@ -180,13 +183,13 @@ class _DriverListScreenState extends State<DriverListScreen> {
                     borderRadius: BorderRadius.circular(10.0)),
                 //this right here
                 child: Container(
-                  child: EditDriverDialog(
-                    driver: drivers[index],
+                  child: EditBusDialog(
+                    bus: buses[index],
                     deleteCallback: (param) {
-                      getDrivers();
+                      getDevices();
                     },
                     updateCallback: (updatedDevice) {
-                      getDrivers();
+                      getDevices();
                     },
                   ),
                 ),
@@ -208,11 +211,11 @@ class _DriverListScreenState extends State<DriverListScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(drivers[index].tenDecode, 4),
+                  buildTextData(buses[index].tenDecode, 4),
                   verticalLine(),
-                  buildTextData(drivers[index].sdt, 2),
+                  buildTextData(buses[index].matx, 2),
                   verticalLine(),
-                  buildTextData('${drivers[index].nhaDecode}', 2),
+                  buildTextData('${buses[index].ghichuDecode}', 2),
                 ],
               ),
             ),
@@ -275,7 +278,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
 
   void removeDevice(int index) async {
     setState(() {
-      drivers.removeAt(index);
+      buses.removeAt(index);
     });
   }
 
@@ -284,8 +287,8 @@ class _DriverListScreenState extends State<DriverListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_DRIVER:
-        drivers = response.id.map((e) => Driver.fromJson(e)).toList();
+      case GET_BUS:
+        buses = response.id.map((e) => Bus.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();
         break;

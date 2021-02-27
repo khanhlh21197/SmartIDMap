@@ -1,5 +1,5 @@
 class ThietBi {
-  String mathietbi;
+  String matb;
   String makhoa;
   String trangthai;
   String nguong;
@@ -7,11 +7,11 @@ class ThietBi {
   String mac;
   String imageUri;
 
-  ThietBi(this.mathietbi, this.makhoa, this.trangthai, this.nguong,
+  ThietBi(this.matb, this.makhoa, this.trangthai, this.nguong,
       this.thoigian, this.mac);
 
   ThietBi.fromJson(Map<String, dynamic> json)
-      : mathietbi = json['mathietbi'],
+      : matb = json['matb'],
         makhoa = json['makhoa'],
         trangthai = json['trangthai'],
         nguong = json['nguong'],
@@ -19,7 +19,7 @@ class ThietBi {
         mac = json['mac'];
 
   Map<String, dynamic> toJson() => {
-        'mathietbi': mathietbi,
+        'matb': matb,
         'makhoa': makhoa,
         'trangthai': trangthai,
         'nguong': nguong,
@@ -29,6 +29,6 @@ class ThietBi {
 
   @override
   String toString() {
-    return '$mathietbi - $makhoa - $nguong - $thoigian';
+    return '$matb - $makhoa - $nguong - $thoigian';
   }
 }
