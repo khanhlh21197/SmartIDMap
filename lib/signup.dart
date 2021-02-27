@@ -270,8 +270,8 @@ class _SignUpPageState extends State<SignUpPage> {
         _entryField("Tên", _nameController),
         _entryField("SĐT", _phoneNumberController),
         _entryField("Địa chỉ", _addressController),
-        _dropDownPermission(),
-        _dropDownDepartment(),
+        // _dropDownPermission(),
+        // _dropDownDepartment(),
       ],
     );
   }

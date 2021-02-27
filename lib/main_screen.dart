@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smartid_map/add_device_page.dart';
+import 'file:///E:/FlutterProjects/SmartIDMap/lib/ui/add_ui/add_page.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/home_page.dart';
 import 'package:smartid_map/notification_page.dart';
@@ -61,7 +61,7 @@ class _MainScreenState extends State<MainScreen> {
     _widgetOptions = <Widget>[
       HomePage(),
       NotificationScreen(),
-      AddDeviceScreen(),
+      AddScreen(),
       UserProfilePage(),
     ];
   }

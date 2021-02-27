@@ -7,23 +7,24 @@ import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/driver.dart';
 
-class AddDeviceScreen extends StatefulWidget {
+class AddDriverScreen extends StatefulWidget {
   @override
-  _AddDeviceScreenState createState() => _AddDeviceScreenState();
+  _AddDriverScreenState createState() => _AddDriverScreenState();
 }
 
-class _AddDeviceScreenState extends State<AddDeviceScreen> {
+class _AddDriverScreenState extends State<AddDriverScreen> {
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
 
   final scrollController = ScrollController();
-  final nameController = TextEditingController();
-  final idController = TextEditingController();
-  var _descriptionController = TextEditingController();
+  final driverIdController = TextEditingController();
+  final driverNameController = TextEditingController();
+  final phoneNumberController = TextEditingController();
+  final addressController = TextEditingController();
 
   String currentSelectedValue;
 
@@ -62,17 +63,29 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                buildTextField(
-                  'Tên học sinh',
-                  Icon(Icons.email),
-                  TextInputType.text,
-                  nameController,
-                ),
                 idDeviceContainer(
-                  'Mã học sinh *',
+                  'Mã lái xe *',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
-                  idController,
+                  driverIdController,
+                ),
+                buildTextField(
+                  'Tên lái xe',
+                  Icon(Icons.email),
+                  TextInputType.text,
+                  driverNameController,
+                ),
+                buildTextField(
+                  'SĐT',
+                  Icon(Icons.phone_android),
+                  TextInputType.text,
+                  phoneNumberController,
+                ),
+                buildTextField(
+                  'Địa chỉ',
+                  Icon(Icons.phone_android),
+                  TextInputType.text,
+                  addressController,
                 ),
                 // buildTextField(
                 //   'Khu vực',
@@ -218,15 +231,13 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
-                ThietBi tb = ThietBi(
-                  idController.text,
-                  currentSelectedValue,
-                  '',
-                  '',
-                  '',
-                  Constants.mac,
-                );
-                publishMessage('registerthietbi', jsonEncode(tb));
+                Driver d = Driver(
+                    utf8.encode(driverNameController.text).toString(),
+                    phoneNumberController.text,
+                    utf8.encode(addressController.text).toString(),
+                    driverIdController.text,
+                    Constants.mac);
+                publishMessage('registerlaixe', jsonEncode(d));
               },
               color: Colors.blue,
               child: Text('Lưu'),
@@ -271,9 +282,10 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
   @override
   void dispose() {
     scrollController.dispose();
-    nameController.dispose();
-    idController.dispose();
-    _descriptionController.dispose();
+    driverIdController.dispose();
+    driverNameController.dispose();
+    phoneNumberController.dispose();
+    addressController.dispose();
     super.dispose();
   }
 }

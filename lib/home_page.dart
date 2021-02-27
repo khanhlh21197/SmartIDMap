@@ -8,11 +8,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/user_profile_page.dart';
-
-import 'file:///E:/KhanhLH/AndroidStudioProjects/my_first_flutter_project/lib/helper/constants.dart'
-    as Constants;
 
 import 'helper/mqttClientWrapper.dart';
 
@@ -119,102 +117,6 @@ class _HomePageState extends State<HomePage>
     return MaterialApp(
       title: 'Geolocation Google Maps Demo',
       home: MapView(),
-    );
-  }
-
-  Widget _upperContainer() {
-    return Container(
-      alignment: Alignment.topLeft,
-      padding: EdgeInsets.all(0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    'Hello Khanh!',
-                    style: TextStyle(color: Colors.white, fontSize: 26),
-                  ),
-                ],
-              ),
-              GestureDetector(
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(
-                      'https://store.playstation.com/store/api/chihiro/00_09_000/container/US/en/999/UP1018-CUSA00133_00-AV00000000000015/1553561653000/image?w=256&h=256&bg_color=000000&opacity=100&_version=00_09_000'),
-                ),
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (BuildContext context) => UserProfilePage()));
-                },
-              )
-            ],
-          ),
-          SizedBox(
-            height: 40,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              Container(
-                height: 50,
-                width: 50,
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.white),
-                    borderRadius: BorderRadius.circular(25)),
-                child: Icon(
-                  Icons.power,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(
-                width: 20,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      Text(
-                        '7.9',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w900),
-                      ),
-                      SizedBox(
-                        width: 5,
-                      ),
-                      Text(
-                        'kwh',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w900),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    'Điện năng tiêu thụ trong ngày',
-                    style: TextStyle(color: Colors.white54, fontSize: 18),
-                  ),
-                ],
-              )
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
-  Widget _roomLabel(String title) {
-    return Text(
-      title,
-      style: TextStyle(
-          color: Color(0xffb2b0b9), fontSize: 18, fontWeight: FontWeight.w600),
     );
   }
 
