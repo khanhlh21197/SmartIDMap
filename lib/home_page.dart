@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -9,6 +8,10 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
+import 'package:smartid_map/helper/models.dart';
+import 'package:smartid_map/helper/response/device_response.dart';
+import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/secrets.dart';
 
 import 'helper/mqttClientWrapper.dart';
@@ -29,62 +32,57 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   _HomePageState(this.loginResponse);
 
+  static const GET_STUDENT = 'getHS';
   final Map loginResponse;
   String iduser;
-
   MQTTClientWrapper mqttClientWrapper;
-
-  Future<bool> _onWillPop() async {
-    return (await showDialog(
-          context: context,
-          builder: (context) => new AlertDialog(
-            title: new Text('Bạn muốn thoát ứng dụng ?'),
-            // content: new Text('Bạn muốn thoát ứng dụng?'),
-            actions: <Widget>[
-              new FlatButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: new Text('Hủy'),
-              ),
-              new FlatButton(
-                onPressed: () => exit(0),
-                // Navigator.of(context).pop(true),
-                child: new Text('Đồng ý'),
-              ),
-            ],
-          ),
-        )) ??
-        false;
-  }
-
-  Widget _backButton() {
-    return InkWell(
-      onTap: () {
-        _onWillPop();
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: <Widget>[
-            Container(
-              padding: EdgeInsets.only(left: 0, top: 10, bottom: 10),
-              child: Icon(Icons.keyboard_arrow_left, color: Colors.white),
-            ),
-            // Text('Back',
-            //     style: TextStyle(
-            //         fontSize: 16,
-            //         fontWeight: FontWeight.w500,
-            //         color: Colors.white))
-          ],
-        ),
-      ),
-    );
-  }
+  double lat;
+  double lon;
+  String pubTopic;
+  bool isLoading = true;
+  List<Student> students = List();
+  String manageValue = 'Chọn';
+  List<String> manageValues = [
+    'Chọn',
+  ];
 
   @override
   void initState() {
     super.initState();
     initMqtt();
     WidgetsBinding.instance.addObserver(this);
+    getStudents();
+  }
+
+  void getStudents() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(t));
+    showLoadingDialog();
+  }
+
+  void showLoadingDialog() {
+    setState(() {
+      isLoading = true;
+    });
+    // Dialogs.showLoadingDialog(context, _keyLoader);
+  }
+
+  void hideLoadingDialog() {
+    setState(() {
+      isLoading = false;
+    });
+    // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+  }
+
+  Future<void> publishMessage(String topic, String message) async {
+    if (mqttClientWrapper.connectionState ==
+        MqttCurrentConnectionState.CONNECTED) {
+      mqttClientWrapper.publishMessage(topic, message);
+    } else {
+      await initMqtt();
+      mqttClientWrapper.publishMessage(topic, message);
+    }
   }
 
   Future<void> initMqtt() async {
@@ -115,50 +113,73 @@ class _HomePageState extends State<HomePage>
 
     return MaterialApp(
       title: 'Geolocation Google Maps Demo',
-      home: MapView(),
+      home: Stack(
+        children: [
+          Positioned(
+            child: _dropDownManage(),
+            top: 0,
+            left: 0,
+          ),
+          MapView(),
+        ],
+      ),
     );
   }
 
   void handle(String message) {
     Map responseMap = jsonDecode(message);
+    var response = DeviceResponse.fromJson(responseMap);
 
-    // if (responseMap['result'] == 'true') {
-    //   helper.response = DeviceResponse.fromJson(loginResponse);
-    //   devices.clear();
-    //   devices = helper.response.id.map((e) => Device.fromJson(e)).toList();
-    //
-    //   devices.forEach((element) {
-    //     if (element.trangthai == 'BAT') {
-    //       element.isEnable = true;
-    //     } else {
-    //       element.isEnable = false;
-    //     }
-    //   });
-    // }
+    switch (pubTopic) {
+      case GET_STUDENT:
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        students.forEach((element) {
+          manageValues.add(element.tenDecode);
+        });
+        setState(() {});
+        hideLoadingDialog();
+        break;
+    }
+    pubTopic = '';
   }
 
-  final snackBar = SnackBar(
-    content: Text('Yay! A SnackBar!'),
-    action: SnackBarAction(
-      label: 'Undo',
-      onPressed: () {
-        // Some code to undo the change.
-      },
-    ),
-  );
-
-  void _showToast(BuildContext context) {
-    final scaffold = Scaffold.of(context);
-    final snackBar = SnackBar(
-      content: Text('Đăng nhập thất bại!'),
-      action: SnackBarAction(
-        label: 'Quay lại',
-        onPressed: () {
-          // Some code to undo the change.
-        },
-      ),
+  Widget _dropDownManage() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: <Widget>[
+        Text(
+          "Chọn mục quản lý",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        DropdownButton<String>(
+          value: manageValue,
+          icon: Icon(Icons.arrow_drop_down),
+          iconSize: 24,
+          elevation: 16,
+          style: TextStyle(color: Colors.red, fontSize: 18),
+          underline: Container(
+            height: 2,
+            color: Colors.deepPurpleAccent,
+          ),
+          onChanged: (String data) {
+            setState(() {
+              manageValue = data;
+              print(manageValue);
+              if (manageValue == manageValues[0]) {}
+              if (manageValue == manageValues[1]) {}
+              if (manageValue == manageValues[2]) {}
+              if (manageValue == manageValues[3]) {}
+            });
+          },
+          items: manageValues.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
+        )
+      ],
     );
-    scaffold.showSnackBar(snackBar);
   }
 }
 
@@ -172,6 +193,7 @@ class _MapViewState extends State<MapView> {
   GoogleMapController mapController;
 
   final Geolocator _geolocator = Geolocator();
+  MQTTClientWrapper mqttClientWrapper;
 
   Position _currentPosition;
   Position _busPosition;
@@ -462,6 +484,7 @@ class _MapViewState extends State<MapView> {
 
   @override
   void initState() {
+    initMqtt();
     _getCurrentLocation();
     _busPosition = Position(
       latitude: 20.9862851635164,
@@ -822,6 +845,35 @@ class _MapViewState extends State<MapView> {
         ),
       ),
     );
+  }
+
+  Future<void> initMqtt() async {
+    mqttClientWrapper =
+        MQTTClientWrapper(() => print('Success'), (message) => handle(message));
+    await mqttClientWrapper.prepareMqttClient('gps');
+  }
+
+  void handle(String message) {
+    print('_HomePageState.handle $message');
+    double lat = double.parse(message.split('&')[0]);
+    double lon = double.parse(message.split('&')[1]);
+    print('_HomePageState.handle $lat - $lon');
+    animateCamera(Position(latitude: lat, longitude: lon));
+    // Map responseMap = jsonDecode(message);
+
+    // if (responseMap['result'] == 'true') {
+    //   helper.response = DeviceResponse.fromJson(loginResponse);
+    //   devices.clear();
+    //   devices = helper.response.id.map((e) => Device.fromJson(e)).toList();
+    //
+    //   devices.forEach((element) {
+    //     if (element.trangthai == 'BAT') {
+    //       element.isEnable = true;
+    //     } else {
+    //       element.isEnable = false;
+    //     }
+    //   });
+    // }
   }
 // getUserLocation() async {//call this async method from whereever you need
 //

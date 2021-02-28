@@ -37,10 +37,10 @@ class _StudentListScreenState extends State<StudentListScreen> {
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getDevices();
+    getStudents();
   }
 
-  void getDevices() async {
+  void getStudents() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
@@ -183,10 +183,10 @@ class _StudentListScreenState extends State<StudentListScreen> {
                   child: EditStudentDialog(
                     student: students[index],
                     deleteCallback: (param) {
-                      getDevices();
+                      getStudents();
                     },
                     updateCallback: (updatedDevice) {
-                      getDevices();
+                      getStudents();
                     },
                   ),
                 ),
