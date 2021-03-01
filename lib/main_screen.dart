@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/home_page.dart';
 import 'package:smartid_map/notification_page.dart';
+import 'package:smartid_map/ui/add_ui/add_page.dart';
 import 'package:smartid_map/ui/manage_page/manage_screen.dart';
 import 'package:smartid_map/user_profile_page.dart';
-
-import 'file:///E:/FlutterProjects/SmartIDMap/lib/ui/add_ui/add_page.dart';
 
 class MainScreen extends StatefulWidget {
   final Map loginResponse;

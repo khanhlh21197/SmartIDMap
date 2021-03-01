@@ -115,7 +115,27 @@ class _UserProfilePageState extends State<UserProfilePage> {
   Widget _editContainer(String title, Color color, Widget icon) {
     return InkWell(
       onTap: () async {
-        getDepartment();
+        // getDepartment();
+        await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                //this right here
+                child: Container(
+                  child: EditUserDialog(
+                    user: user,
+                    deleteCallback: (param) {
+                      getInfoUser();
+                    },
+                    updateCallback: (updatedDevice) {
+                      getInfoUser();
+                    },
+                  ),
+                ),
+              );
+            });
       },
       child: Column(
         children: <Widget>[
@@ -336,20 +356,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               : 'Chưa nhập SĐT',
                           Color(0xff8f48ff),
                           null),
-                      _placeContainer(
-                          user.quyen != null
-                              ? 'Quyền: ${user.quyen}'
-                              : 'Chưa có quyền',
-                          Color(0xff8f48ff),
-                          null),
-                      user.quyen != '1'
-                          ? _placeContainer(
-                              user.khoa != null
-                                  ? 'Khoa: ${user.khoa}'
-                                  : 'Chưa có khoa',
-                              Color(0xff8f48ff),
-                              null)
-                          : Container(),
+                      // _placeContainer(
+                      //     user.quyen != null
+                      //         ? 'Quyền: ${user.quyen}'
+                      //         : 'Chưa có quyền',
+                      //     Color(0xff8f48ff),
+                      //     null),
+                      // user.quyen != '1'
+                      //     ? _placeContainer(
+                      //         user.khoa != null
+                      //             ? 'Khoa: ${user.khoa}'
+                      //             : 'Chưa có khoa',
+                      //         Color(0xff8f48ff),
+                      //         null)
+                      //     : Container(),
                       _editContainer(
                           'Sửa thông tin', Color(0xffffffff), Icon(Icons.edit)),
                       _logoutContainer(
@@ -428,7 +448,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 child: Container(
                   child: EditUserDialog(
                     user: user,
-                    dropDownItems: dropDownItems,
                     deleteCallback: (param) {
                       getInfoUser();
                     },
@@ -439,7 +458,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 ),
               );
             });
-
         break;
       case GET_INFO_USER:
         setState(() {

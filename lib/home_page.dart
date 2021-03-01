@@ -5,6 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
@@ -115,11 +117,7 @@ class _HomePageState extends State<HomePage>
       title: 'Geolocation Google Maps Demo',
       home: Stack(
         children: [
-          Positioned(
-            child: _dropDownManage(),
-            top: 0,
-            left: 0,
-          ),
+          _dropDownManage(),
           MapView(),
         ],
       ),
@@ -144,6 +142,7 @@ class _HomePageState extends State<HomePage>
   }
 
   Widget _dropDownManage() {
+    print('_HomePageState._dropDownManage');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
@@ -611,14 +610,17 @@ class _MapViewState extends State<MapView> {
 
   Widget mapContainer() {
     print('_MapViewState.mapContainer ${markers.length}');
+    markers.forEach((element) {
+
+    });
     markers.isNotEmpty
         ? print(
             '_MapViewState.mapContainer ${markers.elementAt(0).position.toString()}, ${markers.elementAt(0).icon}, ${markers.elementAt(0).markerId}')
         : print('_MapViewState.mapContainer');
     return GoogleMap(
       markers: markers != null ? Set<Marker>.from(markers) : null,
-      initialCameraPosition: _initialLocation,
       myLocationEnabled: true,
+      initialCameraPosition: _initialLocation,
       myLocationButtonEnabled: false,
       mapType: MapType.normal,
       zoomGesturesEnabled: true,
@@ -834,6 +836,7 @@ class _MapViewState extends State<MapView> {
   }
 
   animateCamera(Position position) {
+    getBusLocation(position);
     mapController.animateCamera(
       CameraUpdate.newCameraPosition(
         CameraPosition(
@@ -875,33 +878,44 @@ class _MapViewState extends State<MapView> {
     //   });
     // }
   }
-// getUserLocation() async {//call this async method from whereever you need
-//
-//   LocationData myLocation;
-//   String error;
-//   Location location = new Location();
-//   try {
-//     myLocation = await location.getLocation();
-//   } on PlatformException catch (e) {
-//     if (e.code == 'PERMISSION_DENIED') {
-//       error = 'please grant permission';
-//       print(error);
-//     }
-//     if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
-//       error = 'permission denied- please enable it from app settings';
-//       print(error);
-//     }
-//     myLocation = null;
-//   }
-//   currentLocation = myLocation;
-//   final coordinates = new Coordinates(
-//       myLocation.latitude, myLocation.longitude);
-//   var addresses = await Geocoder.local.findAddressesFromCoordinates(
-//       coordinates);
-//   var first = addresses.first;
-//   print(' ${first.locality}, ${first.adminArea},${first.subLocality}, ${first.subAdminArea},${first.addressLine}, ${first.featureName},${first.thoroughfare}, ${first.subThoroughfare}');
-//   return first;
-// }
+
+  getBusLocation(Position position) async {
+    //call this async method from whereEver you need
+
+    // LocationData myLocation;
+    // String error;
+    // Location location = new Location();
+    // try {
+    //   myLocation = await location.getLocation();
+    // } on PlatformException catch (e) {
+    //   if (e.code == 'PERMISSION_DENIED') {
+    //     error = 'please grant permission';
+    //     print(error);
+    //   }
+    //   if (e.code == 'PERMISSION_DENIED_NEVER_ASK') {
+    //     error = 'permission denied- please enable it from app settings';
+    //     print(error);
+    //   }
+    //   myLocation = null;
+    // }
+    // currentLocation = myLocation;
+    final coordinates = new Coordinates(position.latitude, position.longitude);
+    var addresses =
+        await Geocoder.local.findAddressesFromCoordinates(coordinates);
+    var first = addresses.first;
+    String printValue =
+        // '${first.locality ?? ''} '
+        // '${first.adminArea ?? ''}
+        // ${first.subLocality ?? ''} '
+        // '${first.subAdminArea ?? ''}'
+        // '${first.featureName ?? ''} '
+        '${first.addressLine ?? ''} ';
+    // '${first.thoroughfare ?? ''} ';
+    // '${first.subThoroughfare ?? ''}';
+    print('_MapViewState.getBusLocation $printValue');
+    Fluttertoast.showToast(msg: printValue);
+    return first;
+  }
 
 // Widget _searchMapPlace() {
 //   return SearchMapPlaceWidget(

@@ -8,12 +8,11 @@ import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/ui/add_ui/add_bus_page.dart';
+import 'package:smartid_map/ui/add_ui/add_device_page.dart';
 import 'package:smartid_map/ui/add_ui/add_driver_page.dart';
 import 'package:smartid_map/ui/add_ui/add_monitor_page.dart';
 import 'package:smartid_map/ui/add_ui/add_student_page.dart';
 import 'package:smartid_map/ui/add_ui/add_vehicle.dart';
-
-import 'file:///E:/FlutterProjects/SmartIDMap/lib/ui/add_ui/add_device_page.dart';
 
 class AddScreen extends StatefulWidget {
   final String quyen;

@@ -9,14 +9,12 @@ import 'package:smartid_map/model/user.dart';
 
 class EditUserDialog extends StatefulWidget {
   final User user;
-  final List<String> dropDownItems;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
 
   const EditUserDialog({
     Key key,
     this.user,
-    this.dropDownItems,
     this.updateCallback,
     this.deleteCallback,
   }) : super(key: key);
@@ -221,8 +219,8 @@ class _EditUserDialogState extends State<EditUserDialog>
               //   TextInputType.text,
               //   departmentController,
               // ),
-              buildPermissionContainer('Quyền'),
-              widget.user.quyen == '1' ? Container() : buildDepartment(),
+              // buildPermissionContainer('Quyền'),
+              // widget.user.quyen == '1' ? Container() : buildDepartment(),
               deleteButton(),
               buildButton(),
             ],
@@ -353,7 +351,7 @@ class _EditUserDialogState extends State<EditUserDialog>
             context: context,
             builder: (context) => AlertDialog(
               title: new Text(
-                'Xóa tài khoản ?',
+                'Xóa ?',
               ),
               actions: <Widget>[
                 new FlatButton(
@@ -385,7 +383,7 @@ class _EditUserDialogState extends State<EditUserDialog>
               color: Colors.red,
             ),
             Text(
-              'Xóa tài khoản',
+              'Xóa',
               style: TextStyle(fontSize: 18, color: Colors.red),
             ),
           ],
@@ -431,63 +429,6 @@ class _EditUserDialogState extends State<EditUserDialog>
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget buildDepartment() {
-    return Container(
-      height: 44,
-      width: double.infinity,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(
-          10,
-        ),
-        border: Border.all(
-          color: Colors.green,
-        ),
-      ),
-      margin: const EdgeInsets.symmetric(
-        horizontal: 32,
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Text(
-              'Khoa',
-            ),
-          ),
-          Expanded(
-            child: dropdownDepartment(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget dropdownDepartment() {
-    return Container(
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          hint: Text("Chọn khoa"),
-          value: currentSelectedValue,
-          isDense: true,
-          onChanged: (newValue) {
-            setState(() {
-              currentSelectedValue = newValue;
-            });
-            print(currentSelectedValue);
-          },
-          items: widget.dropDownItems.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        ),
       ),
     );
   }

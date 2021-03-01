@@ -53,6 +53,9 @@ dependencies:
   firebase_messaging: ^7.0.3
   polygon_clipper: ^1.0.2
   after_layout:
+  geocoder: ^0.2.1
+  location: ^3.2.4
+  fluttertoast: ^7.1.8
 
 dev_dependencies:
   flutter_test:
