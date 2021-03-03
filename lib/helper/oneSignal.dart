@@ -1,22 +1,21 @@
 import 'package:onesignal_flutter/onesignal_flutter.dart';
-import 'constants.dart' as Constants;
+import 'package:smartid_map/secrets.dart';
 
-class OneSignalHelper{
-  Future<void> init() async{
+class OneSignalHelper {
+  Future<void> init() async {
     //Remove this method to stop OneSignal Debugging
     OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
 
-    OneSignal.shared.init(
-        Constants.one_signal_app_id,
-        iOSSettings: {
-          OSiOSSettings.autoPrompt: false,
-          OSiOSSettings.inAppLaunchUrl: false
-        }
-    );
-    OneSignal.shared.setInFocusDisplayType(OSNotificationDisplayType.notification);
+    OneSignal.shared.init(Secrets.one_signal_app_id, iOSSettings: {
+      OSiOSSettings.autoPrompt: false,
+      OSiOSSettings.inAppLaunchUrl: false
+    });
+    OneSignal.shared
+        .setInFocusDisplayType(OSNotificationDisplayType.notification);
 
 // The promptForPushNotificationsWithUserResponse function will show the iOS push notification prompt. We recommend removing the following code and instead using an In-App Message to prompt for notification permission
-    await OneSignal.shared.promptUserForPushNotificationPermission(fallbackToSettings: true);
+    await OneSignal.shared
+        .promptUserForPushNotificationPermission(fallbackToSettings: true);
   }
 
   // OneSignal.shared.setNotificationReceivedHandler((OSNotification notification) {
@@ -45,11 +44,10 @@ class OneSignalHelper{
 // For each of the above functions, you can also pass in a
 // reference to a function as well:
 
-  void _handleNotificationReceived(OSNotification notification) {
-
-  }
+  void _handleNotificationReceived(OSNotification notification) {}
 
   void main() {
-    OneSignal.shared.setNotificationReceivedHandler(_handleNotificationReceived);
+    OneSignal.shared
+        .setNotificationReceivedHandler(_handleNotificationReceived);
   }
 }

@@ -35,9 +35,6 @@ String mac = "02:00:00:00:00:00";
 const kPrimaryColor = Color(0xFF6F35A5);
 const kPrimaryLightColor = Color(0xFFF1E6FF);
 
-//OneSignal App ID
-const one_signal_app_id = 'b773c836-f58c-487d-894a-1fe536eda615';
-
 // Future<String> getId() async {
 //   DeviceInfoPlugin deviceInfoPlugin = DeviceInfoPlugin();
 //   if (Platform.isAndroid) {

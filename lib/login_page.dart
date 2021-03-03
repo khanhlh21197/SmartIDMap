@@ -13,6 +13,7 @@ import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/main_screen.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/navigator.dart';
+import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/signup.dart';
 
 // ignore: must_be_immutable
@@ -56,7 +57,7 @@ class _LoginPageState extends State<LoginPage> {
   void initState() {
     super.initState();
     initMqtt();
-    initOneSignal(Constants.one_signal_app_id);
+    initOneSignal(Secrets.one_signal_app_id);
     // mqttClientWrapper =
     //     MQTTClientWrapper(() => print('Success'), (message) => login(message));
     // mqttClientWrapper.prepareMqttClient(Constants.mac);
