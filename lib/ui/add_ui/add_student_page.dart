@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
@@ -8,6 +11,8 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/secrets.dart';
+import 'package:smartid_map/ui/add_ui/map_view_student.dart';
 
 class AddStudentScreen extends StatefulWidget {
   @override
@@ -16,6 +21,7 @@ class AddStudentScreen extends StatefulWidget {
 
 class _AddStudentScreenState extends State<AddStudentScreen> {
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
+  final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
@@ -28,6 +34,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   var _descriptionController = TextEditingController();
 
   String currentSelectedValue;
+
+  double lat;
+  double long;
 
   @override
   void initState() {
@@ -81,6 +90,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
                   studentIdController,
+                ),
+                searchAddress(),
+                Container(
+                  width: double.infinity,
+                  height: 300,
+                  child: MapViewStudent(lat: lat, lon: long),
                 ),
                 // buildTextField(
                 //   'Khu vực',
@@ -249,6 +264,91 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         ],
       ),
     );
+  }
+
+  Widget searchAddress() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 44,
+      child: TextField(
+        onTap: () async {
+          // then get the Prediction selected
+          Prediction p = await PlacesAutocomplete.show(
+              context: context,
+              apiKey: Secrets.API_KEY,
+              onError: (value) {
+                print(
+                    '_AddStudentScreenState.searchAddress ${value.errorMessage}');
+              });
+          displayPrediction(p);
+        },
+        controller: addressController,
+        keyboardType: TextInputType.text,
+        autocorrect: false,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: 'Nhập địa chỉ',
+          // labelStyle: ,
+          // hintStyle: ,
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 20,
+          ),
+          // suffixIcon: Icon(Icons.account_balance_outlined),
+          prefixIcon: Icon(FontAwesomeIcons.map),
+        ),
+      ),
+    );
+    return TextFormField(
+      decoration: new InputDecoration(
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.only(left: 15),
+          hintText: 'Nhập địa chỉ',
+          hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+              fontFamily: "Open Sans",
+              fontWeight: FontWeight.normal)),
+      maxLines: 1,
+      controller: addressController,
+      onTap: () async {
+        // then get the Prediction selected
+        Prediction p = await PlacesAutocomplete.show(
+            context: context,
+            apiKey: Secrets.API_KEY,
+            onError: (value) {
+              print('$value');
+            });
+        displayPrediction(p);
+      },
+    );
+  }
+
+  Future<Null> displayPrediction(Prediction p) async {
+    if (p != null) {
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId);
+
+      var placeId = p.placeId;
+      lat = detail.result.geometry.location.lat;
+      long = detail.result.geometry.location.lng;
+
+      var address = detail.result.formattedAddress;
+
+      print('_AddStudentScreenState.displayPrediction $lat-$long');
+      print(address);
+
+      setState(() {
+        addressController.text = address;
+      });
+    }
   }
 
   void showLoadingDialog() {

@@ -445,6 +445,7 @@ class _LoginPageState extends State<LoginPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         onTap: () {
           FocusScope.of(context).requestFocus(FocusNode());
         },
