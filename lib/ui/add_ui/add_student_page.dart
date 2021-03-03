@@ -91,7 +91,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   TextInputType.visiblePassword,
                   studentIdController,
                 ),
-                searchAddress(),
+                addressContainer(),
                 Container(
                   width: double.infinity,
                   height: 300,
@@ -266,7 +266,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     );
   }
 
-  Widget searchAddress() {
+  Widget addressContainer() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -305,29 +305,6 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           prefixIcon: Icon(FontAwesomeIcons.map),
         ),
       ),
-    );
-    return TextFormField(
-      decoration: new InputDecoration(
-          border: InputBorder.none,
-          contentPadding: EdgeInsets.only(left: 15),
-          hintText: 'Nhập địa chỉ',
-          hintStyle: TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-              fontFamily: "Open Sans",
-              fontWeight: FontWeight.normal)),
-      maxLines: 1,
-      controller: addressController,
-      onTap: () async {
-        // then get the Prediction selected
-        Prediction p = await PlacesAutocomplete.show(
-            context: context,
-            apiKey: Secrets.API_KEY,
-            onError: (value) {
-              print('$value');
-            });
-        displayPrediction(p);
-      },
     );
   }
 

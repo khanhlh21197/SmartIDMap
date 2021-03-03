@@ -1,7 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:smartid_map/helper/Widget/bezierContainer.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
@@ -9,6 +12,8 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/login_page.dart';
 import 'package:smartid_map/model/user.dart';
+import 'package:smartid_map/secrets.dart';
+import 'package:smartid_map/ui/add_ui/map_view_student.dart';
 
 class SignUpPage extends StatefulWidget {
   SignUpPage({Key key, this.title}) : super(key: key);
@@ -26,6 +31,7 @@ class _SignUpPageState extends State<SignUpPage> {
   String departmentValue = 'Khoa 1';
   final List<String> departmentItems = ['Khoa 1', 'Khoa 2', 'Khoa 3', 'Khoa 4'];
   final List<String> permissionItems = ['1', '2', '3', '4'];
+  final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
@@ -35,6 +41,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _phoneNumberController = TextEditingController();
   bool _success;
   String _userEmail;
+
+  double lat;
+  double long;
 
   @override
   void initState() {
@@ -253,11 +262,78 @@ class _SignUpPageState extends State<SignUpPage> {
         _entryField("Mật khẩu", _passwordController, isPassword: true),
         _entryField("Tên", _nameController),
         _entryField("SĐT", _phoneNumberController),
-        _entryField("Địa chỉ", _addressController),
+        addressContainer(),
+        Container(
+          width: double.infinity,
+          height: 300,
+          child: MapViewStudent(lat: lat, lon: long),
+        ),
         // _dropDownPermission(),
         // _dropDownDepartment(),
       ],
     );
+  }
+
+  Widget addressContainer() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 44,
+      child: TextField(
+        onTap: () async {
+          // then get the Prediction selected
+          Prediction p = await PlacesAutocomplete.show(
+              context: context,
+              apiKey: Secrets.API_KEY,
+              onError: (value) {
+                print(
+                    '_AddStudentScreenState.searchAddress ${value.errorMessage}');
+              });
+          displayPrediction(p);
+        },
+        controller: _addressController,
+        keyboardType: TextInputType.text,
+        autocorrect: false,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: 'Nhập địa chỉ',
+          // labelStyle: ,
+          // hintStyle: ,
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 20,
+          ),
+          // suffixIcon: Icon(Icons.account_balance_outlined),
+          prefixIcon: Icon(FontAwesomeIcons.map),
+        ),
+      ),
+    );
+  }
+
+  Future<Null> displayPrediction(Prediction p) async {
+    if (p != null) {
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId);
+
+      var placeId = p.placeId;
+      lat = detail.result.geometry.location.lat;
+      long = detail.result.geometry.location.lng;
+
+      var address = detail.result.formattedAddress;
+
+      print('_AddStudentScreenState.displayPrediction $lat-$long');
+      print(address);
+
+      setState(() {
+        _addressController.text = address;
+      });
+    }
   }
 
   @override
@@ -273,11 +349,11 @@ class _SignUpPageState extends State<SignUpPage> {
         height: height,
         child: Stack(
           children: <Widget>[
-            Positioned(
-              top: -MediaQuery.of(context).size.height * .15,
-              right: -MediaQuery.of(context).size.width * .4,
-              child: BezierContainer(),
-            ),
+            // Positioned(
+            //   top: -MediaQuery.of(context).size.height * .15,
+            //   right: -MediaQuery.of(context).size.width * .4,
+            //   child: BezierContainer(),
+            // ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 20),
               child: SingleChildScrollView(
@@ -285,8 +361,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    SizedBox(height: height * .1),
-                    _title(),
+                    // SizedBox(height: height * .1),
                     SizedBox(
                       height: 30,
                     ),

@@ -404,7 +404,7 @@ class _LoginPageState extends State<LoginPage> {
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-              text: 'S',
+              text: 'T',
               style: GoogleFonts.portLligatSans(
                 textStyle: Theme.of(context).textTheme.display1,
                 fontSize: 30,
@@ -413,11 +413,11 @@ class _LoginPageState extends State<LoginPage> {
               ),
               children: [
                 TextSpan(
-                  text: 'mart',
+                  text: 'ran',
                   style: TextStyle(color: Colors.black, fontSize: 30),
                 ),
                 TextSpan(
-                  text: 'Home',
+                  text: 'Sportation',
                   style: TextStyle(color: Colors.blue, fontSize: 30),
                 ),
               ]),
