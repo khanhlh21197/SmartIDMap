@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -8,6 +10,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/secrets.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MapView extends StatefulWidget {
   @override
@@ -124,7 +127,7 @@ class _MapViewState extends State<MapView> {
 
       setState(() {
         _currentAddress =
-        "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
+            "${place.name}, ${place.locality}, ${place.postalCode}, ${place.country}";
         startAddressController.text = _currentAddress;
         _startAddress = _currentAddress;
       });
@@ -138,9 +141,9 @@ class _MapViewState extends State<MapView> {
     try {
       // Retrieving placemarks from addresses
       List<Placemark> startPlacemark =
-      await _geolocator.placemarkFromAddress(_startAddress);
+          await _geolocator.placemarkFromAddress(_startAddress);
       List<Placemark> destinationPlacemark =
-      await _geolocator.placemarkFromAddress(_destinationAddress);
+          await _geolocator.placemarkFromAddress(_destinationAddress);
 
       if (startPlacemark != null && destinationPlacemark != null) {
         // Use the retrieved coordinates of the current position,
@@ -148,12 +151,12 @@ class _MapViewState extends State<MapView> {
         // current position, as it results in better accuracy.
         Position startCoordinates = _startAddress == _currentAddress
             ? Position(
-            latitude: _currentPosition.latitude,
-            longitude: _currentPosition.longitude)
+                latitude: _currentPosition.latitude,
+                longitude: _currentPosition.longitude)
             : _busPosition;
         // Position destinationCoordinates = destinationPlacemark[0].position;
         Position destinationCoordinates =
-        Position(latitude: latTemp, longitude: lonTemp);
+            Position(latitude: latTemp, longitude: lonTemp);
 
         // Start Location Marker
         Marker startMarker = Marker(
@@ -428,6 +431,7 @@ class _MapViewState extends State<MapView> {
             // showing the route
             // directContainer(width),
             // Show current location button
+            callButton(),
             currentLocationButton(),
           ],
         ),
@@ -437,14 +441,14 @@ class _MapViewState extends State<MapView> {
 
   Widget mapContainer() {
     print('_MapViewState.mapContainer ${markers.length}');
-    markers.forEach((element) {
-
-    });
+    markers.forEach((element) {});
     markers.isNotEmpty
         ? print(
-        '_MapViewState.mapContainer ${markers.elementAt(0).position.toString()}, ${markers.elementAt(0).icon}, ${markers.elementAt(0).markerId}')
+            '_MapViewState.mapContainer ${markers.elementAt(0).position.toString()}, ${markers.elementAt(0).icon}, ${markers.elementAt(0).markerId}')
         : print('_MapViewState.mapContainer');
     return GoogleMap(
+      gestureRecognizers: Set()
+        ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
       markers: markers != null ? Set<Marker>.from(markers) : null,
       myLocationEnabled: true,
       initialCameraPosition: _initialLocation,
@@ -583,34 +587,34 @@ class _MapViewState extends State<MapView> {
                   SizedBox(height: 5),
                   RaisedButton(
                     onPressed:
-                    (_startAddress != '' && _destinationAddress != '')
-                        ? () async {
-                      setState(() {
-                        if (markers.isNotEmpty) markers.clear();
-                        if (polylines.isNotEmpty) polylines.clear();
-                        if (polylineCoordinates.isNotEmpty)
-                          polylineCoordinates.clear();
-                        _placeDistance = null;
-                      });
+                        (_startAddress != '' && _destinationAddress != '')
+                            ? () async {
+                                setState(() {
+                                  if (markers.isNotEmpty) markers.clear();
+                                  if (polylines.isNotEmpty) polylines.clear();
+                                  if (polylineCoordinates.isNotEmpty)
+                                    polylineCoordinates.clear();
+                                  _placeDistance = null;
+                                });
 
-                      _calculateDistance().then((isCalculated) {
-                        if (isCalculated) {
-                          _scaffoldKey.currentState.showSnackBar(
-                            SnackBar(
-                              content:
-                              Text('Tính khoảng cách thành công'),
-                            ),
-                          );
-                        } else {
-                          _scaffoldKey.currentState.showSnackBar(
-                            SnackBar(
-                              content: Text('Có lỗi xảy ra'),
-                            ),
-                          );
-                        }
-                      });
-                    }
-                        : null,
+                                _calculateDistance().then((isCalculated) {
+                                  if (isCalculated) {
+                                    _scaffoldKey.currentState.showSnackBar(
+                                      SnackBar(
+                                        content:
+                                            Text('Tính khoảng cách thành công'),
+                                      ),
+                                    );
+                                  } else {
+                                    _scaffoldKey.currentState.showSnackBar(
+                                      SnackBar(
+                                        content: Text('Có lỗi xảy ra'),
+                                      ),
+                                    );
+                                  }
+                                });
+                              }
+                            : null,
                     color: Colors.red,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20.0),
@@ -627,6 +631,35 @@ class _MapViewState extends State<MapView> {
                     ),
                   ),
                 ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget callButton() {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10.0, bottom: 30.0),
+          child: ClipOval(
+            child: Material(
+              color: Colors.green, // button color
+              child: InkWell(
+                splashColor: Colors.green, // inkwell color
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Icon(
+                    Icons.call,
+                  ),
+                ),
+                onTap: () {
+                  launch("tel://0963003197");
+                },
               ),
             ),
           ),
@@ -728,14 +761,14 @@ class _MapViewState extends State<MapView> {
     // currentLocation = myLocation;
     final coordinates = new Coordinates(position.latitude, position.longitude);
     var addresses =
-    await Geocoder.local.findAddressesFromCoordinates(coordinates);
+        await Geocoder.local.findAddressesFromCoordinates(coordinates);
     var first = addresses.first;
     String printValue =
-    // '${first.locality ?? ''} '
-    // '${first.adminArea ?? ''}
-    // ${first.subLocality ?? ''} '
-    // '${first.subAdminArea ?? ''}'
-    // '${first.featureName ?? ''} '
+        // '${first.locality ?? ''} '
+        // '${first.adminArea ?? ''}
+        // ${first.subLocality ?? ''} '
+        // '${first.subAdminArea ?? ''}'
+        // '${first.featureName ?? ''} '
         '${first.addressLine ?? ''} ';
     // '${first.thoroughfare ?? ''} ';
     // '${first.subThoroughfare ?? ''}';

@@ -58,7 +58,7 @@ dependencies:
   fluttertoast: ^7.1.8
   flutter_google_places:
   google_maps_webservice: ^0.0.19
-
+  url_launcher:
 
 dev_dependencies:
   flutter_test:

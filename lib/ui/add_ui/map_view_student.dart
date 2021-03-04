@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -458,6 +460,8 @@ class _MapViewStudentState extends State<MapViewStudent> {
             '_MapViewState.mapContainer ${markers.elementAt(0).position.toString()}, ${markers.elementAt(0).icon}, ${markers.elementAt(0).markerId}')
         : print('_MapViewState.mapContainer');
     return GoogleMap(
+      gestureRecognizers: Set()
+        ..add(Factory<PanGestureRecognizer>(() => PanGestureRecognizer())),
       markers: markers != null ? Set<Marker>.from(markers) : null,
       myLocationEnabled: true,
       initialCameraPosition: _initialLocation,
