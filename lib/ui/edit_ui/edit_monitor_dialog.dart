@@ -99,7 +99,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
                 buildTextField(
                   'Tên giám sát',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   nameController,
                 ),
                 buildTextField(
@@ -111,7 +111,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
                 buildTextField(
                   'Địa chỉ',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   addressController,
                 ),
                 deleteButton(),

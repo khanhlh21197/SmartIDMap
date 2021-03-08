@@ -265,7 +265,7 @@ class _LoginPageState extends State<LoginPage> {
       child: Container(
         width: MediaQuery.of(context).size.width,
         padding: EdgeInsets.symmetric(vertical: 15),
-        margin: EdgeInsets.symmetric(horizontal: 20),
+        margin: EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.all(Radius.circular(5)),
@@ -430,7 +430,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget _emailPasswordWidget() {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: 20,
+        horizontal: 10,
       ),
       child: Column(
         children: <Widget>[
@@ -443,7 +443,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+    // final height = MediaQuery.of(context).size.height;
     return Scaffold(
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
@@ -451,7 +451,7 @@ class _LoginPageState extends State<LoginPage> {
           FocusScope.of(context).requestFocus(FocusNode());
         },
         child: Container(
-          height: height,
+          // height: height,
           child: Stack(
             children: <Widget>[
               // Positioned(
@@ -469,20 +469,25 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         height: 5,
                       ),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          5,
-                        ),
-                        child: Image.asset(
-                          'assets/images/anco_logo.jpg',
-                          fit: BoxFit.cover,
+                      Container(
+                        // width: double.infinity,
+                        // height: 200,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            5
+                          ),
+                          child: Image.asset(
+                            'assets/images/anco_logo.jpg',
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       SizedBox(height: 15),
                       _title(),
-                      SizedBox(height: 50),
+                      SizedBox(height: 40),
                       _emailPasswordWidget(),
                       // _saveSwitch(),
+                      SizedBox(height: 15),
                       _submitButton(),
                       // switchContainer(),
                       _divider(),

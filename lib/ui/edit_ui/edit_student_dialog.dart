@@ -98,7 +98,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 buildTextField(
                   'Tên hs',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   studentNameController,
                 ),
                 buildTextField(
@@ -110,7 +110,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 buildTextField(
                   'Địa chỉ',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   addressController,
                 ),
                 deleteButton(),

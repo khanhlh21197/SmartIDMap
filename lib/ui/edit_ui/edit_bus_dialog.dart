@@ -98,19 +98,19 @@ class _EditBusDialogState extends State<EditBusDialog> {
                 buildTextField(
                   'Tên tuyến xe',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   busNameController,
                 ),
                 buildTextField(
                   'Mã xe',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   vehicleIdController,
                 ),
                 buildTextField(
                   'Ghi chú',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   noteController,
                 ),
                 deleteButton(),
