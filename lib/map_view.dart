@@ -647,14 +647,30 @@ class _MapViewState extends State<MapView> {
           padding: const EdgeInsets.only(left: 10.0, bottom: 30.0),
           child: ClipOval(
             child: Material(
-              color: Colors.green, // button color
+              color: Colors.red, // button color
               child: InkWell(
-                splashColor: Colors.green, // inkwell color
+                splashColor: Colors.red, // inkwell color
                 child: SizedBox(
                   width: 56,
                   height: 56,
-                  child: Icon(
-                    Icons.call,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.call,
+                        color: Colors.white,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        'SOS',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 onTap: () {

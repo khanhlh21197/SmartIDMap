@@ -175,34 +175,3 @@ class _HomePageState extends State<HomePage>
     );
   }
 }
-
-class SnackBarPage extends StatelessWidget {
-  final String data;
-  final String buttonLabel;
-
-  SnackBarPage(this.data, this.buttonLabel);
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: RaisedButton(
-        onPressed: () {
-          final snackBar = SnackBar(
-            content: Text(data),
-            action: SnackBarAction(
-              label: buttonLabel,
-              onPressed: () {
-                // Some code to undo the change.
-              },
-            ),
-          );
-
-          // Find the Scaffold in the widget tree and use
-          // it to show a SnackBar.
-          Scaffold.of(context).showSnackBar(snackBar);
-        },
-        child: Text('Show SnackBar'),
-      ),
-    );
-  }
-}
