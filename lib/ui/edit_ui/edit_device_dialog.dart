@@ -103,7 +103,7 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
                 buildTextField(
                   'Thời gian',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   timeController,
                 ),
                 deleteButton(),

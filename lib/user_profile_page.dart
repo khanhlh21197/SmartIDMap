@@ -12,7 +12,7 @@ import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/navigator.dart';
 
-import 'edit_user_dialog.dart';
+import 'ui/edit_ui/edit_user_dialog.dart';
 
 class UserProfilePage extends StatefulWidget {
   @override

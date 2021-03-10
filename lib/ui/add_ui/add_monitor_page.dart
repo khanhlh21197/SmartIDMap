@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_google_places/flutter_google_places.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_maps_webservice/places.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
@@ -8,6 +11,7 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/monitor.dart';
+import 'package:smartid_map/secrets.dart';
 
 class AddMonitorScreen extends StatefulWidget {
   @override
@@ -16,6 +20,7 @@ class AddMonitorScreen extends StatefulWidget {
 
 class _AddMonitorScreenState extends State<AddMonitorScreen> {
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
+  final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
@@ -28,6 +33,8 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
   var _descriptionController = TextEditingController();
 
   String currentSelectedValue;
+  double lat;
+  double long;
 
   @override
   void initState() {
@@ -82,12 +89,7 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
                   TextInputType.text,
                   phoneNumberController,
                 ),
-                buildTextField(
-                  'Địa chỉ',
-                  Icon(Icons.phone_android),
-                  TextInputType.text,
-                  addressController,
-                ),
+                addressContainer(),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -107,6 +109,68 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
         ),
       ),
     );
+  }
+
+  Widget addressContainer() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 44,
+      child: TextField(
+        onTap: () async {
+          // then get the Prediction selected
+          Prediction p = await PlacesAutocomplete.show(
+              context: context,
+              apiKey: Secrets.API_KEY,
+              onError: (value) {
+                print(
+                    '_AddStudentScreenState.searchAddress ${value.errorMessage}');
+              });
+          displayPrediction(p);
+        },
+        controller: addressController,
+        keyboardType: TextInputType.text,
+        autocorrect: false,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: 'Nhập địa chỉ',
+          // labelStyle: ,
+          // hintStyle: ,
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 20,
+          ),
+          // suffixIcon: Icon(Icons.account_balance_outlined),
+          prefixIcon: Icon(FontAwesomeIcons.map),
+        ),
+      ),
+    );
+  }
+
+  Future<Null> displayPrediction(Prediction p) async {
+    if (p != null) {
+      PlacesDetailsResponse detail =
+          await _places.getDetailsByPlaceId(p.placeId);
+
+      var placeId = p.placeId;
+      lat = detail.result.geometry.location.lat;
+      long = detail.result.geometry.location.lng;
+
+      var address = detail.result.formattedAddress;
+
+      print('_AddStudentScreenState.displayPrediction $lat-$long');
+      print(address);
+
+      setState(() {
+        addressController.text = address;
+      });
+    }
   }
 
   Widget buildTextField(String labelText, Icon prefixIcon,

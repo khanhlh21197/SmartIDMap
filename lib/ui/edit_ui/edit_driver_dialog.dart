@@ -101,7 +101,7 @@ class _EditDriverDialogState extends State<EditDriverDialog> {
                 buildTextField(
                   'Tên lái xe',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   driverNameController,
                 ),
                 buildTextField(
@@ -113,7 +113,7 @@ class _EditDriverDialogState extends State<EditDriverDialog> {
                 buildTextField(
                   'Địa chỉ',
                   Icon(Icons.vpn_key),
-                  TextInputType.number,
+                  TextInputType.text,
                   addressController,
                 ),
                 deleteButton(),
