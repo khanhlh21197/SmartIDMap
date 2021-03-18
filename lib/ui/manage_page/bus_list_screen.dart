@@ -37,10 +37,10 @@ class _BusListScreenState extends State<BusListScreen> {
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getDevices();
+    getBus();
   }
 
-  void getDevices() async {
+  void getBus() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_BUS;
     publishMessage(pubTopic, jsonEncode(t));
@@ -186,10 +186,10 @@ class _BusListScreenState extends State<BusListScreen> {
                   child: EditBusDialog(
                     bus: buses[index],
                     deleteCallback: (param) {
-                      getDevices();
+                      getBus();
                     },
                     updateCallback: (updatedDevice) {
-                      getDevices();
+                      getBus();
                     },
                   ),
                 ),

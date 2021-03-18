@@ -14,12 +14,20 @@ import 'package:smartid_map/model/student.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/ui/add_ui/map_view_student.dart';
 
+import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/model/thietbi.dart';
+
+import '../../response/device_response.dart';
+
 class AddStudentScreen extends StatefulWidget {
   @override
   _AddStudentScreenState createState() => _AddStudentScreenState();
 }
 
 class _AddStudentScreenState extends State<AddStudentScreen> {
+  static const GET_BUS = 'getTuyenxe';
+  static const REGISTER_STUDENT = 'registerHS';
+
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
@@ -34,9 +42,14 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   var _descriptionController = TextEditingController();
 
   String currentSelectedValue;
+  String pubTopic;
 
   double lat;
   double long;
+
+  String busId = '';
+  List<Bus> buses = List();
+  List<String> busIds = List();
 
   @override
   void initState() {
@@ -255,7 +268,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 //   '',
                 //   Constants.mac,
                 // );
-                publishMessage('registerHS', jsonEncode(s));
+                pubTopic = REGISTER_STUDENT;
+                publishMessage(pubTopic, jsonEncode(s));
               },
               color: Colors.blue,
               child: Text('Lưu'),
@@ -344,8 +358,24 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   void handle(String message) {
     Map responseMap = jsonDecode(message);
-    if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
-      Navigator.pop(context);
+    var response = DeviceResponse.fromJson(responseMap);
+    print('_AddStudentScreenState.handle ${buses.length}');
+
+    switch(pubTopic){
+      case GET_BUS:
+        buses = response.id.map((e) => Bus.fromJson(e)).toList();
+        busIds.clear();
+        buses.forEach((element) {
+          busIds.add(element.matx);
+        });
+        setState(() {});
+        // hideLoadingDialog();
+        break;
+      case REGISTER_STUDENT:
+        if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
+          Navigator.pop(context);
+        }
+        break;
     }
   }
 

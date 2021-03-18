@@ -13,6 +13,7 @@ import 'package:smartid_map/ui/add_ui/add_driver_page.dart';
 import 'package:smartid_map/ui/add_ui/add_monitor_page.dart';
 import 'package:smartid_map/ui/add_ui/add_student_page.dart';
 import 'package:smartid_map/ui/add_ui/add_vehicle.dart';
+import 'package:smartid_map/ui/add_ui/student_bus_page.dart';
 
 class AddScreen extends StatefulWidget {
   final String quyen;
@@ -80,6 +81,8 @@ class _AddScreenState extends State<AddScreen> {
             horizontalLine(),
             buildButton('Học sinh', Icons.add, 5),
             horizontalLine(),
+            buildButton('Học sinh - Tuyến xe', Icons.add, 6),
+            horizontalLine(),
           ],
         ),
       ),
@@ -111,6 +114,9 @@ class _AddScreenState extends State<AddScreen> {
             break;
           case 5:
             navigatorPush(context, AddStudentScreen());
+            break;
+          case 6:
+            navigatorPush(context, StudentBusScreen());
             break;
         }
       },

@@ -66,13 +66,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void initOneSignal(oneSignalAppId) async {
-    status = await OneSignal.shared.getPermissionSubscriptionState();
+    OneSignal.shared.setRequiresUserPrivacyConsent(false);
 
     var settings = {
       OSiOSSettings.autoPrompt: true,
       OSiOSSettings.inAppLaunchUrl: true
     };
     OneSignal.shared.init(oneSignalAppId, iOSSettings: settings);
+    status = await OneSignal.shared.getPermissionSubscriptionState();
     OneSignal.shared
         .setInFocusDisplayType(OSNotificationDisplayType.notification);
 // will be called whenever a notification is received
