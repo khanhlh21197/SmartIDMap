@@ -19,6 +19,8 @@ class StudentBusScreen extends StatefulWidget {
 class _StudentBusScreenState extends State<StudentBusScreen> {
   static const GET_STUDENT = 'getHS';
   static const GET_BUS = 'getTuyenxe';
+  static const REGISTER_HS_TX = 'registerHSTX';
+  static const GET_HS_TX = 'getHSTX';
 
   MQTTClientWrapper mqttClientWrapper;
 
@@ -29,6 +31,8 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   List<Student> students = List();
   var dropDownStudents = ['   '];
   var studentId;
+
+  List<HSTX> hstxs = List();
 
   String pubTopic;
   bool isLoading = true;
@@ -52,32 +56,177 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   Widget buildBody() {
     return Container(
-      child: Row(
+      child: Column(
         children: [
-          Expanded(
-            child: _dropDownBus(),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Expanded(
+                child: _dropDownBus(),
+              ),
+              Expanded(
+                child: _dropDownStudent(),
+              ),
+              Expanded(
+                child: FlatButton(
+                  onPressed: () {
+                    registerHSTX();
+                  },
+                  child: Text('Thêm'),
+                ),
+              ),
+            ],
           ),
-          Expanded(
-            child: _dropDownStudent(),
-          ),
-          Expanded(
-            child: FlatButton(
-              onPressed: () {},
-              child: Text('Đồng ý'),
-            ),
-          ),
+          SizedBox(height: 10),
+          buildTableTitle(),
+          buildListView(),
         ],
       ),
     );
   }
 
-  Widget _dropDownStudent() {
+  void registerHSTX() {
+    var hstx = HSTX(Constants.mac, studentId, busId);
+    pubTopic = REGISTER_HS_TX;
+    publishMessage(pubTopic, jsonEncode(hstx));
+    showLoadingDialog();
+  }
+
+  Widget buildTableTitle() {
+    return Container(
+      color: Colors.yellow,
+      height: 40,
+      child: Row(
+        children: [
+          buildTextLabel('STT', 1),
+          verticalLine(),
+          buildTextLabel('Tên HS', 4),
+          verticalLine(),
+          buildTextLabel('Mã', 2),
+          verticalLine(),
+          buildTextLabel('Xóa', 1),
+        ],
+      ),
+    );
+  }
+
+  Widget buildListView() {
+    return Container(
+      child: Expanded(
+        child: ListView.builder(
+          scrollDirection: Axis.vertical,
+          shrinkWrap: true,
+          itemCount: hstxs.length,
+          itemBuilder: (context, index) {
+            return itemView(index);
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget itemView(int index) {
+    return InkWell(
+      onTap: () async {
+        // await showDialog(
+        //     context: context,
+        //     builder: (BuildContext context) {
+        //       return Dialog(
+        //         shape: RoundedRectangleBorder(
+        //             borderRadius: BorderRadius.circular(10.0)),
+        //         //this right here
+        //         child: Container(
+        //           child: EditStudentDialog(
+        //             student: students[index],
+        //             deleteCallback: (param) {
+        //               getStudents();
+        //             },
+        //             updateCallback: (updatedDevice) {
+        //               getStudents();
+        //             },
+        //           ),
+        //         ),
+        //       );
+        //     });
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              child: Row(
+                children: [
+                  buildTextData('${index + 1}', 1),
+                  verticalLine(),
+                  buildTextData(hstxs[index].tenDecode, 4),
+                  verticalLine(),
+                  buildTextData(hstxs[index].mahs, 2),
+                  verticalLine(),
+                  Expanded(
+                    flex: 1,
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.delete,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            horizontalLine(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextData(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data,
+        style: TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget verticalLine() {
+    return Container(
+      height: double.infinity,
+      width: 1,
+      color: Colors.grey,
+    );
+  }
+
+  Widget horizontalLine() {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      color: Colors.grey,
+    );
+  }
+
+  Widget buildTextLabel(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data ?? '',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget _dropDownBus() {
     print('_HomePageState._dropDownManage');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
-          "Chọn HS",
+          "Chọn TX",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
         DropdownButton<String>(
@@ -94,12 +243,13 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
             setState(() {
               busId = data;
               print(busId);
+              getHSTX();
             });
           },
           items: dropDownBuses.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Flexible(child: Text(value)),
+              child: Text(value),
             );
           }).toList(),
         )
@@ -107,13 +257,13 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     );
   }
 
-  Widget _dropDownBus() {
+  Widget _dropDownStudent() {
     print('_HomePageState._dropDownManage');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         Text(
-          "Chọn Tuyến xe",
+          "Chọn HS",
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
         DropdownButton<String>(
@@ -135,7 +285,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
           items: dropDownStudents.map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
-              child: Flexible(child: Text(value)),
+              child: Text(value),
             );
           }).toList(),
         )
@@ -154,6 +304,13 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
+    showLoadingDialog();
+  }
+
+  void getHSTX() {
+    var hstx = HSTX(Constants.mac, '', busId);
+    pubTopic = GET_HS_TX;
+    publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
 
@@ -216,7 +373,54 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
+      case REGISTER_HS_TX:
+        if (response.result == 'true') {
+          print('Them thanh cong');
+        }
+        break;
+      case GET_HS_TX:
+        hstxs = response.id.map((e) => HSTX.fromJson(e)).toList();
+        print('_StudentBusScreenState.handle ${hstxs.length}');
+        setState(() {});
+        break;
     }
     pubTopic = '';
   }
+}
+
+class HSTX {
+  String mac;
+  String mahs;
+  String matx;
+  String ten;
+
+  String get tenDecode {
+    try {
+      String s = ten;
+      List<int> ints = List();
+      s = s.replaceAll('[', '');
+      s = s.replaceAll(']', '');
+      List<String> strings = s.split(',');
+      for (int i = 0; i < strings.length; i++) {
+        ints.add(int.parse(strings[i]));
+      }
+      return utf8.decode(ints);
+    } catch (e) {
+      return ten;
+    }
+  }
+
+  HSTX(this.mac, this.mahs, this.matx);
+
+  Map<String, dynamic> toJson() => {
+        'mac': mac,
+        'mahs': mahs,
+        'matx': matx,
+      };
+
+  HSTX.fromJson(Map<String, dynamic> json)
+      : mac = json['mac'],
+        mahs = json['mahs'],
+        matx = json['matx'],
+        ten = json['ten'];
 }
