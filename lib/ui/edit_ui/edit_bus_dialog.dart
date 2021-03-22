@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class EditBusDialog extends StatefulWidget {
   final Bus bus;
@@ -30,12 +32,28 @@ class _EditBusDialogState extends State<EditBusDialog> {
   final busIdController = TextEditingController();
   final vehicleIdController = TextEditingController();
   final noteController = TextEditingController();
+  final monitorIdController = TextEditingController();
+  final driverIdController = TextEditingController();
+  final deviceIdController = TextEditingController();
 
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   String pubTopic = '';
   String currentSelectedValue;
   Bus updatedBus;
+
+  DateTime currentTime = DateTime.now();
+  String morningStartTime = '6 : 0';
+  String morningEndTime = '8 : 0';
+  String afternoonStartTime = '13 : 0';
+  String afternoonEndTime = '18 : 0';
+  String relaxTime = '';
+
+  //syncfution_flutter_datepicker
+  String _selectedDate = '';
+  String _dateCount = '';
+  String _range = '';
+  String _rangeCount = '';
 
   @override
   void initState() {
@@ -70,6 +88,9 @@ class _EditBusDialogState extends State<EditBusDialog> {
     busIdController.text = widget.bus.matx;
     vehicleIdController.text = widget.bus.maxe;
     noteController.text = widget.bus.ghichuDecode;
+    monitorIdController.text = widget.bus.mags;
+    driverIdController.text = widget.bus.malx;
+    deviceIdController.text = widget.bus.matb;
   }
 
   @override
@@ -193,7 +214,14 @@ class _EditBusDialogState extends State<EditBusDialog> {
                 new FlatButton(
                   onPressed: () {
                     pubTopic = DELETE_BUS;
-                    var b = Bus(widget.bus.matx, '', widget.bus.maxe, '',
+                    var b = Bus(
+                        widget.bus.matx,
+                        '',
+                        widget.bus.maxe,
+                        driverIdController.text,
+                        monitorIdController.text,
+                        deviceIdController.text,
+                        '',
                         Constants.mac);
                     publishMessage(pubTopic, jsonEncode(b));
                   },
@@ -254,11 +282,165 @@ class _EditBusDialogState extends State<EditBusDialog> {
     );
   }
 
+  Widget morningTime() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Sáng : '),
+            flex: 1,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      morningStartTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Bắt đầu $morningStartTime'),
+              color: Colors.blue,
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      morningEndTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Kết thúc $morningEndTime'),
+              color: Colors.red,
+            ),
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget afternoonTime() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Chiều : '),
+            flex: 1,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      afternoonStartTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Bắt đầu $afternoonStartTime'),
+              color: Colors.blue,
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      afternoonEndTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Kết thúc $afternoonEndTime'),
+              color: Colors.red,
+            ),
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget relaxTimeChoosing() {
+    return Container(
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 70,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Selected date: ' + _selectedDate),
+                Text('Selected date count: ' + _dateCount),
+                Text('Selected range: ' + _range),
+                Text('Selected ranges count: ' + _rangeCount)
+              ],
+            ),
+          ),
+          Positioned(
+            left: 0,
+            top: 80,
+            right: 0,
+            bottom: 0,
+            child: SfDateRangePicker(
+              onSelectionChanged: _onSelectionChanged,
+              selectionMode: DateRangePickerSelectionMode.range,
+              initialSelectedRange: PickerDateRange(
+                  DateTime.now().subtract(const Duration(days: 4)),
+                  DateTime.now().add(const Duration(days: 3))),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void showTimerPicker(Function(TimeOfDay) onPickSuccess) {
+    showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: currentTime.hour, minute: currentTime.minute),
+      builder: (BuildContext context, Widget child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child,
+        );
+      },
+    ).then((value) {
+      onPickSuccess(value);
+      setState(() {});
+    });
+  }
+
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    setState(() {
+      if (args.value is PickerDateRange) {
+        _range =
+            DateFormat('dd/MM/yyyy').format(args.value.startDate).toString() +
+                ' - ' +
+                DateFormat('dd/MM/yyyy')
+                    .format(args.value.endDate ?? args.value.startDate)
+                    .toString();
+      } else if (args.value is DateTime) {
+        _selectedDate = args.value;
+      } else if (args.value is List<DateTime>) {
+        _dateCount = args.value.length.toString();
+      } else {
+        _rangeCount = args.value.length.toString();
+      }
+    });
+  }
+
   Future<void> _tryEdit() async {
     updatedBus = Bus(
         busIdController.text,
         utf8.encode(busNameController.text).toString(),
         vehicleIdController.text,
+        driverIdController.text,
+        monitorIdController.text,
+        deviceIdController.text,
         utf8.encode(noteController.text).toString(),
         Constants.mac);
     pubTopic = UPDATE_BUS;
@@ -282,6 +464,9 @@ class _EditBusDialogState extends State<EditBusDialog> {
     busIdController.dispose();
     vehicleIdController.dispose();
     noteController.dispose();
+    monitorIdController.dispose();
+    driverIdController.dispose();
+    deviceIdController.dispose();
     super.dispose();
   }
 }

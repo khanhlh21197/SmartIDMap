@@ -21,9 +21,6 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
   SharedPrefsHelper sharedPrefsHelper;
 
   final scrollController = ScrollController();
-  final monitorIdController = TextEditingController();
-  final driverIdController = TextEditingController();
-  final deviceIdController = TextEditingController();
   final vehicleIdController = TextEditingController();
   final vehicleTypeController = TextEditingController();
   final licensePlateController = TextEditingController();
@@ -65,24 +62,6 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                idDeviceContainer(
-                  'Mã giám sát *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  monitorIdController,
-                ),
-                idDeviceContainer(
-                  'Mã lái xe *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  driverIdController,
-                ),
-                idDeviceContainer(
-                  'Mã thiết bị *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  deviceIdController,
-                ),
                 idDeviceContainer(
                   'Mã xe *',
                   Icon(Icons.vpn_key),
@@ -248,9 +227,6 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
                 Vehicle v = Vehicle(
                     vehicleIdController.text,
                     vehicleTypeController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
                     licensePlateController.text,
                     Constants.mac);
                 publishMessage('registerXe', jsonEncode(v));
@@ -298,9 +274,6 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
   @override
   void dispose() {
     scrollController.dispose();
-    monitorIdController.dispose();
-    driverIdController.dispose();
-    deviceIdController.dispose();
     vehicleIdController.dispose();
     vehicleTypeController.dispose();
     super.dispose();

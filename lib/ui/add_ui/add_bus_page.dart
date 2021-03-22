@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
@@ -8,6 +9,9 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/navigator.dart';
+import 'package:smartid_map/ui/multiple_date_picker/multiple_date_picker_page.dart';
+import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class AddBusScreen extends StatefulWidget {
   @override
@@ -26,6 +30,22 @@ class _AddBusScreenState extends State<AddBusScreen> {
   final vehicleIdController = TextEditingController();
   final noteController = TextEditingController();
   var _descriptionController = TextEditingController();
+  final monitorIdController = TextEditingController();
+  final driverIdController = TextEditingController();
+  final deviceIdController = TextEditingController();
+
+  DateTime currentTime = DateTime.now();
+  String morningStartTime = '6 : 0';
+  String morningEndTime = '8 : 0';
+  String afternoonStartTime = '13 : 0';
+  String afternoonEndTime = '18 : 0';
+  String relaxTime = '';
+
+  //syncfution_flutter_datepicker
+  String _selectedDate = '';
+  String _dateCount = '';
+  String _range = '';
+  String _rangeCount = '';
 
   String currentSelectedValue;
 
@@ -33,6 +53,25 @@ class _AddBusScreenState extends State<AddBusScreen> {
   void initState() {
     initMqtt();
     super.initState();
+  }
+
+  void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    setState(() {
+      if (args.value is PickerDateRange) {
+        _range =
+            DateFormat('dd/MM/yyyy').format(args.value.startDate).toString() +
+                ' - ' +
+                DateFormat('dd/MM/yyyy')
+                    .format(args.value.endDate ?? args.value.startDate)
+                    .toString();
+      } else if (args.value is DateTime) {
+        _selectedDate = args.value;
+      } else if (args.value is List<DateTime>) {
+        _dateCount = args.value.length.toString();
+      } else {
+        _rangeCount = args.value.length.toString();
+      }
+    });
   }
 
   @override
@@ -82,12 +121,46 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   TextInputType.visiblePassword,
                   busNameController,
                 ),
+                idDeviceContainer(
+                  'Mã giám sát *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  monitorIdController,
+                ),
+                idDeviceContainer(
+                  'Mã lái xe *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  driverIdController,
+                ),
+                idDeviceContainer(
+                  'Mã thiết bị *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  deviceIdController,
+                ),
                 buildTextField(
                   'Ghi chú',
                   Icon(Icons.email),
                   TextInputType.text,
                   noteController,
                 ),
+                Text(
+                  'Cài đặt thời gian theo dõi : ',
+                  style: TextStyle(fontSize: 18),
+                ),
+                morningTime(),
+                afternoonTime(),
+                FlatButton(
+                    onPressed: () {
+                      navigatorPush(context, MultipleDatePicker(
+                        datePickerCallback: (value) {
+                          print(
+                              '_AddBusScreenState.buildBody ${jsonEncode(value)}');
+                        },
+                      ));
+                    },
+                    child: Text('Chọn lịch nghỉ')),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -139,6 +212,138 @@ class _AddBusScreenState extends State<AddBusScreen> {
         ),
       ),
     );
+  }
+
+  Widget morningTime() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Sáng : '),
+            flex: 1,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      morningStartTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Bắt đầu $morningStartTime'),
+              color: Colors.blue,
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      morningEndTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Kết thúc $morningEndTime'),
+              color: Colors.red,
+            ),
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget afternoonTime() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text('Chiều : '),
+            flex: 1,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      afternoonStartTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Bắt đầu $afternoonStartTime'),
+              color: Colors.blue,
+            ),
+            flex: 2,
+          ),
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                showTimerPicker((value) => {
+                      afternoonEndTime = '${value.hour} : ${value.minute}',
+                    });
+              },
+              child: Text('Kết thúc $afternoonEndTime'),
+              color: Colors.red,
+            ),
+            flex: 2,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget relaxTimeChoosing() {
+    return Container(
+      child: Stack(
+        children: <Widget>[
+          Positioned(
+            left: 0,
+            right: 0,
+            top: 0,
+            height: 70,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Selected date: ' + _selectedDate),
+                Text('Selected date count: ' + _dateCount),
+                Text('Selected range: ' + _range),
+                Text('Selected ranges count: ' + _rangeCount)
+              ],
+            ),
+          ),
+          Positioned(
+            left: 0,
+            top: 80,
+            right: 0,
+            bottom: 0,
+            child: SfDateRangePicker(
+              onSelectionChanged: _onSelectionChanged,
+              selectionMode: DateRangePickerSelectionMode.range,
+              initialSelectedRange: PickerDateRange(
+                  DateTime.now().subtract(const Duration(days: 4)),
+                  DateTime.now().add(const Duration(days: 3))),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void showTimerPicker(Function(TimeOfDay) onPickSuccess) {
+    showTimePicker(
+      context: context,
+      initialTime:
+          TimeOfDay(hour: currentTime.hour, minute: currentTime.minute),
+      builder: (BuildContext context, Widget child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child,
+        );
+      },
+    ).then((value) {
+      onPickSuccess(value);
+      setState(() {});
+    });
   }
 
   Widget idDeviceContainer(String labelText, Icon prefixIcon,
@@ -236,6 +441,9 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   busIdController.text,
                   utf8.encode(busNameController.text).toString(),
                   vehicleIdController.text,
+                  driverIdController.text,
+                  monitorIdController.text,
+                  deviceIdController.text,
                   utf8.encode(noteController.text).toString(),
                   Constants.mac,
                 );
@@ -289,6 +497,9 @@ class _AddBusScreenState extends State<AddBusScreen> {
     vehicleIdController.dispose();
     noteController.dispose();
     _descriptionController.dispose();
+    monitorIdController.dispose();
+    driverIdController.dispose();
+    deviceIdController.dispose();
     super.dispose();
   }
 }

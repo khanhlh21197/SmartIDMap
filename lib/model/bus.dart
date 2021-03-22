@@ -6,8 +6,12 @@ class Bus {
   String maxe;
   String note;
   String mac;
+  String malx;
+  String mags;
+  String matb;
 
-  Bus(this.matx, this.tentuyen, this.maxe, this.note, this.mac);
+  Bus(this.matx, this.tentuyen, this.maxe, this.malx, this.mags, this.matb,
+      this.note, this.mac);
 
   String get tenDecode {
     try {
@@ -46,13 +50,19 @@ class Bus {
         tentuyen = json['tentuyen'],
         maxe = json['maxe'],
         note = json['note'],
-        mac = json['mac'];
+        mac = json['mac'],
+        malx = json['malx'],
+        mags = json['mags'],
+        matb = json['matb'];
 
   Map<String, dynamic> toJson() {
     return {
       'matx': matx,
       'tentuyen': tentuyen,
       'maxe': maxe,
+      'malx': malx,
+      'mags': mags,
+      'matb': matb,
       'note': note,
       'mac': mac,
     };

@@ -160,14 +160,16 @@ class _BusListScreenState extends State<BusListScreen> {
   Widget buildListView() {
     return Container(
       child: Expanded(
-        child: ListView.builder(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: buses.length,
-          itemBuilder: (context, index) {
-            return itemView(index);
-          },
-        ),
+        child: buses.length != 0
+            ? ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: buses.length,
+                itemBuilder: (context, index) {
+                  return itemView(index);
+                },
+              )
+            : Center(child: Text('Không có thông tin')),
       ),
     );
   }

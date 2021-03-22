@@ -144,14 +144,16 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
   Widget buildListView() {
     return Container(
       child: Expanded(
-        child: ListView.builder(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: monitors.length,
-          itemBuilder: (context, index) {
-            return itemView(index);
-          },
-        ),
+        child: monitors.length != 0
+            ? ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: monitors.length,
+                itemBuilder: (context, index) {
+                  return itemView(index);
+                },
+              )
+            : Center(child: Text('Không có thông tin')),
       ),
     );
   }

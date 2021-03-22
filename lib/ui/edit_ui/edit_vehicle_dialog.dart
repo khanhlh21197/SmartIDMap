@@ -68,9 +68,6 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
   }
 
   void initController() async {
-    monitorIdController.text = widget.vehicle.mags;
-    driverIdController.text = widget.vehicle.malx;
-    deviceIdController.text = widget.vehicle.matb;
     vehicleIdController.text = widget.vehicle.maxe;
     vehicleTypeController.text = widget.vehicle.loaixe;
   }
@@ -211,9 +208,6 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
                     var v = Vehicle(
                         widget.vehicle.maxe,
                         '',
-                        widget.vehicle.malx,
-                        widget.vehicle.mags,
-                        widget.vehicle.matb,
                         widget.vehicle.bienso,
                         Constants.mac);
                     publishMessage(pubTopic, jsonEncode(v));
@@ -279,9 +273,6 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
     updatedVehicle = Vehicle(
         vehicleIdController.text,
         vehicleTypeController.text,
-        driverIdController.text,
-        monitorIdController.text,
-        deviceIdController.text,
         licensePlateController.text,
         Constants.mac);
     pubTopic = UPDATE_VEHICLE;

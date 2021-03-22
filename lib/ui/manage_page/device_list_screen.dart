@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
-import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/response/device_response.dart';
 import 'package:smartid_map/ui/edit_ui/edit_device_dialog.dart';
@@ -154,14 +153,16 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   Widget buildListView() {
     return Container(
       child: Expanded(
-        child: ListView.builder(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: tbs.length,
-          itemBuilder: (context, index) {
-            return itemView(index);
-          },
-        ),
+        child: tbs.length != 0
+            ? ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: tbs.length,
+                itemBuilder: (context, index) {
+                  return itemView(index);
+                },
+              )
+            : Center(child: Text('Không có thông tin')),
       ),
     );
   }

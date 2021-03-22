@@ -5,7 +5,6 @@ import 'package:flutter_google_places/flutter_google_places.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_webservice/places.dart';
-import 'package:smartid_map/helper/Widget/bezierContainer.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
@@ -394,7 +393,7 @@ class _SignUpPageState extends State<SignUpPage> {
       '',
       '',
     );
-    mqttClientWrapper.publishMessage('registeruser', jsonEncode(registerUser));
+    publishMessage('registeruser', jsonEncode(registerUser));
   }
 
   register(String message) {

@@ -157,14 +157,16 @@ class _StudentListScreenState extends State<StudentListScreen> {
   Widget buildListView() {
     return Container(
       child: Expanded(
-        child: ListView.builder(
-          scrollDirection: Axis.vertical,
-          shrinkWrap: true,
-          itemCount: students.length,
-          itemBuilder: (context, index) {
-            return itemView(index);
-          },
-        ),
+        child: students.length != 0
+            ? ListView.builder(
+                scrollDirection: Axis.vertical,
+                shrinkWrap: true,
+                itemCount: students.length,
+                itemBuilder: (context, index) {
+                  return itemView(index);
+                },
+              )
+            : Center(child: Text('Không có thông tin')),
       ),
     );
   }
