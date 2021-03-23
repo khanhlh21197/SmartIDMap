@@ -19,7 +19,7 @@ class MultipleDatePickerState extends State<MultipleDatePicker> {
   String _range;
   String _rangeCount;
   var selectionMode;
-  List<DateTime> dates;
+  List<DateTime> dates = List();
 
   @override
   void initState() {
@@ -32,11 +32,12 @@ class MultipleDatePickerState extends State<MultipleDatePicker> {
   }
 
   void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
+    print('MultipleDatePickerState._onSelectionChanged');
     _selectedDate = '';
     _dateCount = '';
     _range = '';
     _rangeCount = '';
-    dates = List();
+    dates.clear();
     if (args.value is PickerDateRange) {
       _range =
           DateFormat('dd/MM/yyyy').format(args.value.startDate).toString() +
@@ -45,7 +46,8 @@ class MultipleDatePickerState extends State<MultipleDatePicker> {
                   .format(args.value.endDate ?? args.value.startDate)
                   .toString();
     } else if (args.value is DateTime) {
-      _selectedDate = '${DateFormat('dd/MM/yyyy').format(args.value)}';
+      _selectedDate =
+          '${DateFormat('dd/MM/yyyy').format(args.value).toString()}';
       dates.add(args.value);
     } else if (args.value is List<DateTime>) {
       _dateCount = args.value.length.toString();

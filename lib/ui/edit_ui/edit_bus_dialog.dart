@@ -222,6 +222,9 @@ class _EditBusDialogState extends State<EditBusDialog> {
                         monitorIdController.text,
                         deviceIdController.text,
                         '',
+                        '',
+                        '',
+                        '',
                         Constants.mac);
                     publishMessage(pubTopic, jsonEncode(b));
                   },
@@ -442,6 +445,9 @@ class _EditBusDialogState extends State<EditBusDialog> {
         monitorIdController.text,
         deviceIdController.text,
         utf8.encode(noteController.text).toString(),
+        '',
+        '',
+        '',
         Constants.mac);
     pubTopic = UPDATE_BUS;
     publishMessage(pubTopic, jsonEncode(updatedBus));

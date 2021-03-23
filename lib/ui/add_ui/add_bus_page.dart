@@ -35,10 +35,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
   final deviceIdController = TextEditingController();
 
   DateTime currentTime = DateTime.now();
-  String morningStartTime = '6 : 0';
-  String morningEndTime = '8 : 0';
-  String afternoonStartTime = '13 : 0';
-  String afternoonEndTime = '18 : 0';
+  String morningStartTime = '6:0';
+  String morningEndTime = '8:0';
+  String afternoonStartTime = '13:0';
+  String afternoonEndTime = '18:0';
   String relaxTime = '';
 
   //syncfution_flutter_datepicker
@@ -48,6 +48,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
   String _rangeCount = '';
 
   String currentSelectedValue;
+  List<String> stringDates = List();
 
   @override
   void initState() {
@@ -155,12 +156,22 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     onPressed: () {
                       navigatorPush(context, MultipleDatePicker(
                         datePickerCallback: (value) {
-                          print(
-                              '_AddBusScreenState.buildBody ${jsonEncode(value)}');
+                          List<DateTime> dates = value;
+                          dates.forEach((element) {
+                            stringDates
+                                .add(DateFormat('dd/MM/yyyy').format(element));
+                          });
+                          stringDates.forEach((element) {
+                            print('$element');
+                          });
+                          relaxTime = '';
+                          relaxTime = stringDates.toString();
+                          setState(() {});
                         },
                       ));
                     },
-                    child: Text('Chọn lịch nghỉ')),
+                    child: wrapText(
+                        relaxTime == '' ? 'Chọn lịch nghỉ' : relaxTime)),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -178,6 +189,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget wrapText(String text) {
+    double cWidth = MediaQuery.of(context).size.width * 1;
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      width: cWidth,
+      child: Column(
+        children: <Widget>[
+          Text(
+            text,
+            textAlign: TextAlign.left,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -227,7 +256,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
             child: FlatButton(
               onPressed: () {
                 showTimerPicker((value) => {
-                      morningStartTime = '${value.hour} : ${value.minute}',
+                      morningStartTime = '${value.hour}:${value.minute}',
                     });
               },
               child: Text('Bắt đầu $morningStartTime'),
@@ -239,7 +268,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
             child: FlatButton(
               onPressed: () {
                 showTimerPicker((value) => {
-                      morningEndTime = '${value.hour} : ${value.minute}',
+                      morningEndTime = '${value.hour}:${value.minute}',
                     });
               },
               child: Text('Kết thúc $morningEndTime'),
@@ -265,7 +294,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
             child: FlatButton(
               onPressed: () {
                 showTimerPicker((value) => {
-                      afternoonStartTime = '${value.hour} : ${value.minute}',
+                      afternoonStartTime = '${value.hour}:${value.minute}',
                     });
               },
               child: Text('Bắt đầu $afternoonStartTime'),
@@ -277,7 +306,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
             child: FlatButton(
               onPressed: () {
                 showTimerPicker((value) => {
-                      afternoonEndTime = '${value.hour} : ${value.minute}',
+                      afternoonEndTime = '${value.hour}:${value.minute}',
                     });
               },
               child: Text('Kết thúc $afternoonEndTime'),
@@ -445,9 +474,13 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   monitorIdController.text,
                   deviceIdController.text,
                   utf8.encode(noteController.text).toString(),
+                  '$morningStartTime:$morningEndTime',
+                  '$afternoonStartTime:$afternoonEndTime',
+                  stringDates.toString(),
                   Constants.mac,
                 );
-                publishMessage('registerTuyenxe', jsonEncode(b));
+                // publishMessage('registerTuyenxe', jsonEncode(b));
+                print('_AddBusScreenState.buildButton ${jsonEncode(b)}');
               },
               color: Colors.blue,
               child: Text('Lưu'),
