@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/model/user.dart';
 
 import '../../helper/models.dart';
 import '../../helper/mqttClientWrapper.dart';
@@ -11,22 +12,22 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 
 import '../../model/thietbi.dart';
 
-class StudentBusScreen extends StatefulWidget {
+class StudentParentScreen extends StatefulWidget {
   @override
-  _StudentBusScreenState createState() => _StudentBusScreenState();
+  _StudentParentScreenState createState() => _StudentParentScreenState();
 }
 
-class _StudentBusScreenState extends State<StudentBusScreen> {
+class _StudentParentScreenState extends State<StudentParentScreen> {
   static const GET_STUDENT = 'getHS';
-  static const GET_BUS = 'getTuyenxe';
-  static const REGISTER_HS_TX = 'registerHSTX';
-  static const GET_HS_TX = 'getHSTX';
+  static const GET_PARENT = 'getph';
+  static const REGISTER_HS_PH = 'registerHSPH';
+  static const GET_HS_PH = 'getHSPH';
 
   MQTTClientWrapper mqttClientWrapper;
 
-  List<Bus> buses = List();
-  var dropDownBuses = ['   '];
-  var busId;
+  List<User> parents = List();
+  var dropDownParents = ['   '];
+  var parentID;
 
   List<Student> students = List();
   var dropDownStudents = ['   '];
@@ -62,7 +63,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Expanded(
-                child: _dropDownBus(),
+                child: _dropDownParent(),
               ),
               Expanded(
                 child: _dropDownStudent(),
@@ -86,8 +87,8 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   }
 
   void registerHSTX() {
-    var hstx = HSTX(Constants.mac, studentId, busId);
-    pubTopic = REGISTER_HS_TX;
+    var hstx = HSTX(Constants.mac, studentId, parentID);
+    pubTopic = REGISTER_HS_PH;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
@@ -220,43 +221,39 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     );
   }
 
-  Widget _dropDownBus() {
+  Widget _dropDownParent() {
     print('_HomePageState._dropDownManage');
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Expanded(
-          child: Text(
-            "Chọn TX",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
+        Text(
+          "Chọn PH",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
-        Expanded(
-          child: DropdownButton<String>(
-            value: busId,
-            isExpanded: true,
-            icon: Icon(Icons.arrow_drop_down),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(color: Colors.red, fontSize: 18),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
-            onChanged: (String data) {
-              setState(() {
-                busId = data;
-                print(busId);
-                getHSTX();
-              });
-            },
-            items: dropDownBuses.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
+        DropdownButton<String>(
+          isExpanded: true,
+          value: parentID,
+          icon: Icon(Icons.arrow_drop_down),
+          iconSize: 24,
+          elevation: 16,
+          style: TextStyle(color: Colors.red, fontSize: 18),
+          underline: Container(
+            height: 2,
+            color: Colors.deepPurpleAccent,
           ),
+          onChanged: (String data) {
+            setState(() {
+              parentID = data;
+              print(parentID);
+              getHSTX();
+            });
+          },
+          items: dropDownParents.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
         )
       ],
     );
@@ -267,46 +264,41 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        Expanded(
-          child: Text(
-            "Chọn HS",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
+        Text(
+          "Chọn HS",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         ),
-        Expanded(
-          child: DropdownButton<String>(
-            value: studentId,
-            isExpanded: true,
-            icon: Icon(Icons.arrow_drop_down),
-            iconSize: 24,
-            elevation: 16,
-            style: TextStyle(color: Colors.red, fontSize: 18),
-            underline: Container(
-              height: 2,
-              color: Colors.deepPurpleAccent,
-            ),
-            onChanged: (String data) {
-              setState(() {
-                studentId = data;
-                print(studentId);
-              });
-            },
-            items:
-                dropDownStudents.map<DropdownMenuItem<String>>((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
+        DropdownButton<String>(
+          value: studentId,
+          isExpanded: true,
+          icon: Icon(Icons.arrow_drop_down),
+          iconSize: 24,
+          elevation: 16,
+          style: TextStyle(color: Colors.red, fontSize: 18),
+          underline: Container(
+            height: 2,
+            color: Colors.deepPurpleAccent,
           ),
+          onChanged: (String data) {
+            setState(() {
+              studentId = data;
+              print(studentId);
+            });
+          },
+          items: dropDownStudents.map<DropdownMenuItem<String>>((String value) {
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(value),
+            );
+          }).toList(),
         )
       ],
     );
   }
 
-  void getBus() async {
+  void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_BUS;
+    pubTopic = GET_PARENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -319,8 +311,8 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   }
 
   void getHSTX() {
-    var hstx = HSTX(Constants.mac, '', busId);
-    pubTopic = GET_HS_TX;
+    var hstx = HSTX(Constants.mac, '', parentID);
+    pubTopic = GET_HS_PH;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
@@ -354,7 +346,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
 
-    getBus();
+    getParent();
     Future.delayed(Duration(seconds: 1), getStudents);
   }
 
@@ -364,12 +356,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     print('Response: ${response.id}');
 
     switch (pubTopic) {
-      case GET_BUS:
-        buses = response.id.map((e) => Bus.fromJson(e)).toList();
-        print('_StudentBusScreenState.handle ${buses.length}');
-        dropDownBuses.clear();
-        buses.forEach((element) {
-          dropDownBuses.add(element.matx);
+      case GET_PARENT:
+        parents = response.id.map((e) => User.fromJson(e)).toList();
+        print('_StudentBusScreenState.handle ${parents.length}');
+        dropDownParents.clear();
+        parents.forEach((element) {
+          dropDownParents.add(element.maph);
         });
         setState(() {});
         hideLoadingDialog();
@@ -384,12 +376,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
-      case REGISTER_HS_TX:
+      case REGISTER_HS_PH:
         if (response.result == 'true') {
           print('Them thanh cong');
         }
         break;
-      case GET_HS_TX:
+      case GET_HS_PH:
         hstxs = response.id.map((e) => HSTX.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${hstxs.length}');
         setState(() {});
@@ -404,6 +396,7 @@ class HSTX {
   String mahs;
   String matx;
   String ten;
+  String maph;
 
   String get tenDecode {
     try {
@@ -427,11 +420,13 @@ class HSTX {
         'mac': mac,
         'mahs': mahs,
         'matx': matx,
+        'maph': maph,
       };
 
   HSTX.fromJson(Map<String, dynamic> json)
       : mac = json['mac'],
         mahs = json['mahs'],
         matx = json['matx'],
+        maph = json['maph'],
         ten = json['ten'];
 }

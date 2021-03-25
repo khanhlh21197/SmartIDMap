@@ -6,6 +6,9 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/user.dart';
+import 'package:smartid_map/response/device_response.dart';
 
 class EditStudentDialog extends StatefulWidget {
   final Student student;
@@ -23,11 +26,13 @@ class EditStudentDialog extends StatefulWidget {
 class _EditStudentDialogState extends State<EditStudentDialog> {
   static const UPDATE_STUDENT = 'updateHS';
   static const DELETE_STUDENT = 'deleteHS';
+  static const GET_PARENT = 'getph';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final studentNameController = TextEditingController();
   final studentIdController = TextEditingController();
+  final parentIdController = TextEditingController();
   final phoneNumberController = TextEditingController();
   final addressController = TextEditingController();
 
@@ -36,6 +41,10 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
   String pubTopic = '';
   String currentSelectedValue;
   Student updatedStudent;
+
+  List<User> parents = List();
+  var dropDownParents = ['   '];
+  var parentID;
 
   @override
   void initState() {
@@ -48,6 +57,8 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
+
+    getParent();
   }
 
   void handle(String message) {
@@ -56,18 +67,31 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
       switch (pubTopic) {
         case UPDATE_STUDENT:
           widget.updateCallback(updatedStudent);
+          Navigator.of(context).pop();
           break;
         case DELETE_STUDENT:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
+          Navigator.of(context).pop();
+          break;
+        case GET_PARENT:
+          DeviceResponse response =
+              DeviceResponse.fromJson(jsonDecode(message));
+          parents = response.id.map((e) => User.fromJson(e)).toList();
+          dropDownParents.clear();
+          parents.forEach((element) {
+            dropDownParents.add(element.maph);
+          });
+          setState(() {});
+          break;
       }
-      Navigator.of(context).pop();
     }
   }
 
   void initController() async {
     studentNameController.text = widget.student.tenDecode;
     studentIdController.text = widget.student.mahs;
+    parentIdController.text = widget.student.maph;
     phoneNumberController.text = widget.student.sdt;
     addressController.text = widget.student.nhaDecode;
   }
@@ -95,6 +119,13 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                   TextInputType.visiblePassword,
                   studentIdController,
                 ),
+                buildTextField(
+                  'Mã ph',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  parentIdController,
+                ),
+                _dropDownParent(),
                 buildTextField(
                   'Tên hs',
                   Icon(Icons.vpn_key),
@@ -193,8 +224,8 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 new FlatButton(
                   onPressed: () {
                     pubTopic = DELETE_STUDENT;
-                    var s =
-                        Student(widget.student.mahs, '', '', '', Constants.mac);
+                    var s = Student(
+                        widget.student.mahs, '', '', '', '', Constants.mac);
                     publishMessage(pubTopic, jsonEncode(s));
                   },
                   child: new Text(
@@ -254,12 +285,70 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     );
   }
 
+  Widget _dropDownParent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Chọn PH",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: parentID,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  parentID = data;
+                  print(parentID);
+                });
+              },
+              items:
+                  dropDownParents.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void getParent() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_PARENT;
+    publishMessage(pubTopic, jsonEncode(t));
+  }
+
   Future<void> _tryEdit() async {
     updatedStudent = Student(
         studentIdController.text,
         utf8.encode(studentNameController.text).toString(),
         phoneNumberController.text,
         utf8.encode(addressController.text).toString(),
+        parentID,
         Constants.mac);
     pubTopic = UPDATE_STUDENT;
     publishMessage(pubTopic, jsonEncode(updatedStudent));
@@ -280,6 +369,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     scrollController.dispose();
     studentNameController.dispose();
     studentIdController.dispose();
+    parentIdController.dispose();
     phoneNumberController.dispose();
     addressController.dispose();
     super.dispose();

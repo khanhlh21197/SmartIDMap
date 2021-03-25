@@ -15,9 +15,10 @@ import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/ui/add_ui/map_view_student.dart';
 
 class SignUpPage extends StatefulWidget {
-  SignUpPage({Key key, this.title}) : super(key: key);
+  SignUpPage({Key key, this.title, this.isAdmin}) : super(key: key);
 
   final String title;
+  final bool isAdmin;
 
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -344,14 +345,19 @@ class _SignUpPageState extends State<SignUpPage> {
       Constants.mac,
       _emailController.text,
       _passwordController.text,
-      _nameController.text,
+      utf8.encode(_nameController.text).toString(),
       _phoneNumberController.text,
-      _addressController.text,
+      utf8.encode(_addressController.text).toString(),
       '',
       permissionValue,
       '',
     );
-    publishMessage('registeruser', jsonEncode(registerUser));
+    registerUser.maph = registerUser.user;
+    if (widget.isAdmin) {
+      publishMessage('registeruser', jsonEncode(registerUser));
+    } else {
+      publishMessage('registerph', jsonEncode(registerUser));
+    }
   }
 
   register(String message) {

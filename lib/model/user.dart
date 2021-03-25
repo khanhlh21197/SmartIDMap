@@ -28,18 +28,11 @@ class User {
   String thongbao;
   String trangthai;
   String passmoi;
+  String maph;
 
-  User(
-      this.mac,
-      this.user,
-      this.pass,
-      this.ten,
-      this.sdt,
-      this.nha,
-      this.khoa,
-      this.quyen,
-      this.playerid,
-      );
+  User(this.mac, this.user, this.pass, this.ten, this.sdt, this.nha, this.khoa,
+      this.quyen, this.playerid,
+      {this.maph});
 
   String toString() => '$user - $ten - $sdt - $nha';
 
@@ -56,24 +49,26 @@ class User {
         quyen = json['quyen'],
         playerid = json['playerid'],
         thongbao = json['thongbao'],
-        trangthai = json['trangthai'];
+        trangthai = json['trangthai'],
+        maph = json['maph'];
 
   Map<String, dynamic> toJson() => {
-    'user': user,
-    'pass': pass,
-    'ten': ten,
-    'sdt': sdt,
-    'nha': nha,
-    'mac': mac,
-    'iduser': iduser,
-    '_id': _id,
-    'khoa': khoa,
-    'quyen': quyen,
-    'playerid': playerid,
-    'thongbao': thongbao,
-    'trangthai': trangthai,
-    'passmoi': passmoi,
-  };
+        'user': user,
+        'pass': pass,
+        'ten': ten,
+        'sdt': sdt,
+        'nha': nha,
+        'mac': mac,
+        'iduser': iduser,
+        '_id': _id,
+        'khoa': khoa,
+        'quyen': quyen,
+        'playerid': playerid,
+        'thongbao': thongbao,
+        'trangthai': trangthai,
+        'passmoi': passmoi,
+        'maph': maph,
+      };
 
   String get tenDecode {
     try {

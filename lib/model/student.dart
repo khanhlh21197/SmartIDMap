@@ -6,8 +6,9 @@ class Student {
   String sdt;
   String nha;
   String mac;
+  String maph;
 
-  Student(this.mahs, this.ten, this.sdt, this.nha, this.mac);
+  Student(this.mahs, this.ten, this.sdt, this.nha, this.maph, this.mac);
 
   String get tenDecode {
     try {
@@ -46,6 +47,7 @@ class Student {
         sdt = json['sdt'],
         nha = json['nha'],
         mahs = json['mahs'],
+        maph = json['maph'],
         mac = json['mac'];
 
   Map<String, dynamic> toJson() => {
@@ -53,6 +55,7 @@ class Student {
         'sdt': sdt,
         'nha': nha,
         'mahs': mahs,
+        'maph': maph,
         'mac': mac,
       };
 }

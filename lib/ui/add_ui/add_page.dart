@@ -7,6 +7,7 @@ import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/navigator.dart';
+import 'package:smartid_map/signup.dart';
 import 'package:smartid_map/ui/add_ui/add_bus_page.dart';
 import 'package:smartid_map/ui/add_ui/add_device_page.dart';
 import 'package:smartid_map/ui/add_ui/add_driver_page.dart';
@@ -14,6 +15,7 @@ import 'package:smartid_map/ui/add_ui/add_monitor_page.dart';
 import 'package:smartid_map/ui/add_ui/add_student_page.dart';
 import 'package:smartid_map/ui/add_ui/add_vehicle.dart';
 import 'package:smartid_map/ui/add_ui/student_bus_page.dart';
+import 'package:smartid_map/ui/add_ui/student_parent_page.dart';
 
 class AddScreen extends StatefulWidget {
   final String quyen;
@@ -25,8 +27,6 @@ class AddScreen extends StatefulWidget {
 }
 
 class _AddScreenState extends State<AddScreen> {
-  static const GET_DEPARTMENT = 'loginkhoa';
-
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
 
@@ -43,9 +43,6 @@ class _AddScreenState extends State<AddScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-
-    Department d = Department('', '', Constants.mac);
-    publishMessage(GET_DEPARTMENT, jsonEncode(d));
   }
 
   @override
@@ -83,8 +80,6 @@ class _AddScreenState extends State<AddScreen> {
             horizontalLine(),
             buildButton('Phụ huynh', Icons.add, 7),
             horizontalLine(),
-            buildButton('Học sinh - Phụ huynh', Icons.add, 8),
-            horizontalLine(),
             buildButton('Học sinh - Tuyến xe', Icons.add, 6),
           ],
         ),
@@ -120,6 +115,13 @@ class _AddScreenState extends State<AddScreen> {
             break;
           case 6:
             navigatorPush(context, StudentBusScreen());
+            break;
+          case 7:
+            navigatorPush(
+                context,
+                SignUpPage(
+                  isAdmin: false,
+                ));
             break;
         }
       },

@@ -31,7 +31,6 @@ class _LoginPageState extends State<LoginPage> {
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   bool loading = false;
-  bool _switchValue = false;
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   String iduser;
   var status;
@@ -98,7 +97,6 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.text = await sharedPrefsHelper.getStringValuesSF('email');
     _passwordController.text =
         await sharedPrefsHelper.getStringValuesSF('password');
-    _switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
     if (_emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
       await _tryLogin();
@@ -125,22 +123,33 @@ class _LoginPageState extends State<LoginPage> {
     try {
       playerid = await status.subscriptionStatus.userId;
     } catch (e) {
-      print('_LoginPageState._tryLogin erorr: ${e.toString()}');
+      print('_LoginPageState._tryLogin error: ${e.toString()}');
     }
     print('_LoginPageState.initOneSignal playerID: $playerid');
     User user = User(Constants.mac, _emailController.text,
         _passwordController.text, '', '', '', '', '', playerid);
+    user.maph = user.user;
 
     if (mqttClientWrapper.connectionState ==
         MqttCurrentConnectionState.CONNECTED) {
       if (switchValue) {
-        mqttClientWrapper.patientLogin(user);
+        publishMessage('loginph', jsonEncode(user));
       } else {
         mqttClientWrapper.login(user);
       }
     } else {
       await initMqtt();
       mqttClientWrapper.login(user);
+    }
+  }
+
+  Future<void> publishMessage(String topic, String message) async {
+    if (mqttClientWrapper.connectionState ==
+        MqttCurrentConnectionState.CONNECTED) {
+      mqttClientWrapper.publishMessage(topic, message);
+    } else {
+      await initMqtt();
+      mqttClientWrapper.publishMessage(topic, message);
     }
   }
 
@@ -157,24 +166,19 @@ class _LoginPageState extends State<LoginPage> {
         loading = false;
       });
       print('Login success');
-      if (_switchValue != null) {
-        if (_switchValue) {
-          await sharedPrefsHelper.addStringToSF('email', _emailController.text);
-          await sharedPrefsHelper.addStringToSF(
-              'password', _passwordController.text);
-          await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
-        } else {
-          await sharedPrefsHelper.removeValues();
-        }
-      }
       await sharedPrefsHelper.addStringToSF('email', _emailController.text);
       await sharedPrefsHelper.addStringToSF(
           'password', _passwordController.text);
-      await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
       await sharedPrefsHelper.addBoolToSF('login', true);
       await sharedPrefsHelper.addIntToSF('quyen', responseMap['quyen']);
-      navigatorPushAndRemoveUntil(
-          context, MainScreen(quyen: responseMap['quyen'] ?? 1));
+      if (switchValue) {
+        navigatorPushAndRemoveUntil(
+            context, MainScreen(quyen: responseMap['quyen'] ?? 2));
+      } else {
+        navigatorPushAndRemoveUntil(
+            context, MainScreen(quyen: responseMap['quyen'] ?? 1));
+      }
+      await sharedPrefsHelper.addBoolToSF('switchValue', switchValue);
     } else {
       this._showToast(context);
       // Scaffold.of(context).showSnackBar(snackbar);
@@ -230,23 +234,6 @@ class _LoginPageState extends State<LoginPage> {
                   filled: true))
         ],
       ),
-    );
-  }
-
-  Widget _saveSwitch() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text("Lưu tài khoản"),
-        Switch(
-          value: this._switchValue,
-          onChanged: (value) {
-            setState(() {
-              _switchValue = !_switchValue;
-            });
-          },
-        )
-      ],
     );
   }
 
@@ -485,6 +472,7 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(height: 50),
                       _emailPasswordWidget(),
                       // _saveSwitch(),
+                      switchContainer(),
                       _submitButton(),
                       // switchContainer(),
                       _divider(),
@@ -521,7 +509,7 @@ class _LoginPageState extends State<LoginPage> {
             },
           ),
           Text(
-            'Bệnh nhân',
+            'Phụ huynh',
           ),
         ],
       ),

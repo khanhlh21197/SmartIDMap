@@ -11,6 +11,7 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/ui/add_ui/map_view_student.dart';
 
@@ -27,6 +28,7 @@ class AddStudentScreen extends StatefulWidget {
 class _AddStudentScreenState extends State<AddStudentScreen> {
   static const GET_BUS = 'getTuyenxe';
   static const REGISTER_STUDENT = 'registerHS';
+  static const GET_PARENT = 'getph';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
@@ -37,6 +39,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   final scrollController = ScrollController();
   final studentNameController = TextEditingController();
   final studentIdController = TextEditingController();
+  final parentIdController = TextEditingController();
   final phoneNumberController = TextEditingController();
   final addressController = TextEditingController();
   var _descriptionController = TextEditingController();
@@ -50,6 +53,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   String busId = '';
   List<Bus> buses = List();
   List<String> busIds = List();
+
+  List<User> parents = List();
+  var dropDownParents = ['   '];
+  var parentID;
 
   @override
   void initState() {
@@ -104,6 +111,13 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   TextInputType.visiblePassword,
                   studentIdController,
                 ),
+                _dropDownParent(),
+                // idDeviceContainer(
+                //   'Mã phụ huynh',
+                //   Icon(Icons.vpn_key),
+                //   TextInputType.visiblePassword,
+                //   parentIdController,
+                // ),
                 addressContainer(),
                 Container(
                   width: double.infinity,
@@ -259,6 +273,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                     utf8.encode(studentNameController.text).toString(),
                     phoneNumberController.text,
                     utf8.encode(addressController.text).toString(),
+                    parentID,
                     Constants.mac);
                 // ThietBi tb = ThietBi(
                 //   idController.text,
@@ -342,6 +357,57 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     }
   }
 
+  Widget _dropDownParent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Chọn PH",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: parentID,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  parentID = data;
+                  print(parentID);
+                });
+              },
+              items:
+                  dropDownParents.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void showLoadingDialog() {
     Dialogs.showLoadingDialog(context, _keyLoader);
   }
@@ -354,6 +420,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
+    getParent();
   }
 
   void handle(String message) {
@@ -361,7 +428,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     var response = DeviceResponse.fromJson(responseMap);
     print('_AddStudentScreenState.handle ${buses.length}');
 
-    switch(pubTopic){
+    switch (pubTopic) {
       case GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         busIds.clear();
@@ -372,11 +439,27 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         // hideLoadingDialog();
         break;
       case REGISTER_STUDENT:
-        if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
+        if (responseMap['result'] == 'true' &&
+            responseMap['errorCode'] == '0') {
           Navigator.pop(context);
         }
         break;
+      case GET_PARENT:
+        parents = response.id.map((e) => User.fromJson(e)).toList();
+        print('_StudentBusScreenState.handle ${parents.length}');
+        dropDownParents.clear();
+        parents.forEach((element) {
+          dropDownParents.add(element.maph);
+        });
+        setState(() {});
+        break;
     }
+  }
+
+  void getParent() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_PARENT;
+    publishMessage(pubTopic, jsonEncode(t));
   }
 
   Future<void> publishMessage(String topic, String message) async {
@@ -394,6 +477,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     scrollController.dispose();
     studentNameController.dispose();
     studentIdController.dispose();
+    parentIdController.dispose();
     phoneNumberController.dispose();
     addressController.dispose();
     _descriptionController.dispose();

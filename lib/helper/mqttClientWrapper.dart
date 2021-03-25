@@ -31,11 +31,6 @@ class MQTTClientWrapper {
     _publishMessage(Constants.login_topic, userJson);
   }
 
-  void patientLogin(User user) {
-    String userJson = jsonEncode(user);
-    _publishMessage(Constants.patient_login_topic, userJson);
-  }
-
   void publishMessage(String topic, String message) {
     _publishMessage(topic, message);
   }

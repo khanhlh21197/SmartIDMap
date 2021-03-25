@@ -21,6 +21,7 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   static const GET_INFO_USER = 'getinfouser';
+  static const GET_INFO_PARENT = 'getinfoph';
   static const GET_DEPARTMENT = 'loginkhoa';
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
@@ -68,7 +69,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void getInfoUser() async {
-    pubTopic = GET_INFO_USER;
+    var switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
+    if (switchValue) {
+      pubTopic = GET_INFO_USER;
+    } else {
+      pubTopic = GET_INFO_PARENT;
+    }
     String email = await sharedPrefsHelper.getStringValuesSF('email');
     String password = await sharedPrefsHelper.getStringValuesSF('password');
     if (email.isNotEmpty && password.isNotEmpty) {
@@ -460,6 +466,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             });
         break;
       case GET_INFO_USER:
+      case GET_INFO_PARENT:
         setState(() {
           List<User> users = response.id.map((e) => User.fromJson(e)).toList();
           user = users[0];
