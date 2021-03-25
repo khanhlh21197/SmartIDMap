@@ -3,21 +3,68 @@ import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/home_page.dart';
 import 'package:smartid_map/notification_page.dart';
 import 'package:smartid_map/ui/add_ui/add_page.dart';
+import 'package:smartid_map/ui/add_ui/add_student_page.dart';
 import 'package:smartid_map/ui/manage_page/manage_screen.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
 class MainScreen extends StatefulWidget {
   final Map loginResponse;
+  final int quyen;
 
-  const MainScreen({Key key, this.loginResponse}) : super(key: key);
+  const MainScreen({Key key, this.loginResponse, this.quyen}) : super(key: key);
 
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
+  static const adminBottomBarItems = [
+    BottomNavigationBarItem(
+      icon: Icon(
+        Icons.error,
+      ),
+      label: 'Quản lý',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.notifications),
+      label: 'Thông báo',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.add),
+      label: 'Thêm',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(
+        Icons.account_box_outlined,
+      ),
+      label: 'Cá nhân',
+    ),
+  ];
+
+  static const userBottomBarItems = [
+    BottomNavigationBarItem(
+      icon: Icon(
+        Icons.home,
+      ),
+      label: 'Home',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.notifications),
+      label: 'Thông báo',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.add),
+      label: 'Thêm',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(
+        Icons.account_box_outlined,
+      ),
+      label: 'Cá nhân',
+    ),
+  ];
+
   int _selectedIndex = 0;
-  int quyen;
   SharedPrefsHelper sharedPrefsHelper;
 
   static const TextStyle optionStyle =
@@ -34,44 +81,35 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void initBottomBarItems() {
-    bottomBarItems = [
-      BottomNavigationBarItem(
-        icon: Icon(
-          Icons.home,
-        ),
-        label: 'Home',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(
-          Icons.error,
-        ),
-        label: 'Quản lý',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.notifications),
-        label: 'Thông báo',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(Icons.add),
-        label: 'Thêm',
-      ),
-      BottomNavigationBarItem(
-        icon: Icon(
-          Icons.account_box_outlined,
-        ),
-        label: 'Cá nhân',
-      ),
-    ];
+    switch (widget.quyen) {
+      case 1:
+        bottomBarItems = adminBottomBarItems;
+        break;
+      case 2:
+        bottomBarItems = userBottomBarItems;
+        break;
+    }
   }
 
   void initWidgetOptions() {
-    _widgetOptions = <Widget>[
-      HomePage(),
-      ManageScreen(),
-      NotificationScreen(),
-      AddScreen(),
-      UserProfilePage(),
-    ];
+    switch (widget.quyen) {
+      case 1:
+        _widgetOptions = <Widget>[
+          ManageScreen(),
+          NotificationScreen(),
+          AddScreen(),
+          UserProfilePage(),
+        ];
+        break;
+      case 2:
+        _widgetOptions = <Widget>[
+          HomePage(),
+          NotificationScreen(),
+          AddStudentScreen(),
+          UserProfilePage(),
+        ];
+        break;
+    }
   }
 
   void _onItemTapped(int index) {

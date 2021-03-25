@@ -173,7 +173,8 @@ class _LoginPageState extends State<LoginPage> {
       await sharedPrefsHelper.addBoolToSF('switchValue', _switchValue);
       await sharedPrefsHelper.addBoolToSF('login', true);
       await sharedPrefsHelper.addIntToSF('quyen', responseMap['quyen']);
-      navigatorPushAndRemoveUntil(context, MainScreen());
+      navigatorPushAndRemoveUntil(
+          context, MainScreen(quyen: responseMap['quyen'] ?? 1));
     } else {
       this._showToast(context);
       // Scaffold.of(context).showSnackBar(snackbar);

@@ -26,10 +26,8 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   MQTTClientWrapper mqttClientWrapper;
   User registerUser;
-  String permissionValue = '1';
-  String departmentValue = 'Khoa 1';
-  final List<String> departmentItems = ['Khoa 1', 'Khoa 2', 'Khoa 3', 'Khoa 4'];
-  final List<String> permissionItems = ['1', '2', '3', '4'];
+  String permissionValue = '2';
+  final List<String> permissionItems = ['1', '2'];
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -176,45 +174,6 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _dropDownDepartment() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          "Mã khoa",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        DropdownButton<String>(
-          value: departmentValue,
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 24,
-          elevation: 16,
-          style: TextStyle(color: Colors.red, fontSize: 18),
-          underline: Container(
-            height: 2,
-            color: Colors.deepPurpleAccent,
-          ),
-          onChanged: (String data) {
-            setState(() {
-              departmentValue = data;
-              print(departmentValue);
-              if (departmentValue == departmentItems[0]) {}
-              if (departmentValue == departmentItems[1]) {}
-              if (departmentValue == departmentItems[2]) {}
-              if (departmentValue == departmentItems[3]) {}
-            });
-          },
-          items: departmentItems.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        )
-      ],
-    );
-  }
-
   Widget _dropDownPermission() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -239,8 +198,6 @@ class _SignUpPageState extends State<SignUpPage> {
               print(permissionValue);
               if (permissionValue == permissionItems[0]) {}
               if (permissionValue == permissionItems[1]) {}
-              if (permissionValue == permissionItems[2]) {}
-              if (permissionValue == permissionItems[3]) {}
             });
           },
           items: permissionItems.map<DropdownMenuItem<String>>((String value) {
@@ -368,6 +325,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     SizedBox(
                       height: 20,
                     ),
+                    _dropDownPermission(),
                     _submitButton(),
                     // SizedBox(height: height * .14),
                     // _loginAccountLabel(),
@@ -390,7 +348,7 @@ class _SignUpPageState extends State<SignUpPage> {
       _phoneNumberController.text,
       _addressController.text,
       '',
-      '',
+      permissionValue,
       '',
     );
     publishMessage('registeruser', jsonEncode(registerUser));
@@ -400,7 +358,7 @@ class _SignUpPageState extends State<SignUpPage> {
     Map responseMap = jsonDecode(message);
 
     if (responseMap['result'] == 'true') {
-      print('Login success');
+      print('Signup success');
       Navigator.push(
           context,
           MaterialPageRoute(

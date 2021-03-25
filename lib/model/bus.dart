@@ -9,12 +9,13 @@ class Bus {
   String malx;
   String mags;
   String matb;
-  String sang;
-  String chieu;
-  String ngay;
+  String giohds;
+  String giohdc;
+  dynamic ngay;
+  dynamic data;
 
   Bus(this.matx, this.tentuyen, this.maxe, this.malx, this.mags, this.matb,
-      this.note, this.sang, this.chieu, this.ngay, this.mac);
+      this.note, this.giohds, this.giohdc, this.ngay, this.data, this.mac);
 
   String get tenDecode {
     try {
@@ -56,9 +57,10 @@ class Bus {
         mac = json['mac'],
         malx = json['malx'],
         mags = json['mags'],
-        sang = json['sang'],
-        chieu = json['chieu'],
+        giohds = json['giohds'],
+        giohdc = json['giohdc'],
         ngay = json['ngay'],
+        data = json['data'],
         matb = json['matb'];
 
   Map<String, dynamic> toJson() {
@@ -70,9 +72,10 @@ class Bus {
       'mags': mags,
       'matb': matb,
       'note': note,
-      'sang': sang,
-      'chieu': chieu,
+      'giohds': giohds,
+      'giohdc': giohdc,
       'ngay': ngay,
+      'data': data,
       'mac': mac,
     };
   }

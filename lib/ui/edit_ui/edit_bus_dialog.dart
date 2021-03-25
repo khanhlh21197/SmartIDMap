@@ -7,6 +7,8 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/navigator.dart';
+import 'package:smartid_map/ui/multiple_date_picker/multiple_date_picker_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class EditBusDialog extends StatefulWidget {
@@ -26,6 +28,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
   static const UPDATE_BUS = 'updateTuyenxe';
   static const DELETE_BUS = 'deleteTuyenxe';
 
+  final String REGISTER_LICH_KLV = 'registerlichklv';
+  final String TX_HDS = 'updateTuyenxegiohds';
+  final String TX_HDC = 'updateTuyenxegiohdc';
+
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final busNameController = TextEditingController();
@@ -43,10 +49,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
   Bus updatedBus;
 
   DateTime currentTime = DateTime.now();
-  String morningStartTime = '6 : 0';
-  String morningEndTime = '8 : 0';
-  String afternoonStartTime = '13 : 0';
-  String afternoonEndTime = '18 : 0';
+  String morningStartTime = '6:0';
+  String morningEndTime = '8:0';
+  String afternoonStartTime = '13:0';
+  String afternoonEndTime = '18:0';
   String relaxTime = '';
 
   //syncfution_flutter_datepicker
@@ -54,6 +60,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
   String _dateCount = '';
   String _range = '';
   String _rangeCount = '';
+  List<String> stringDates = List();
 
   @override
   void initState() {
@@ -129,17 +136,106 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   vehicleIdController,
                 ),
                 buildTextField(
+                  'Mã giám sát *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  monitorIdController,
+                ),
+                buildTextField(
+                  'Mã lái xe *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  driverIdController,
+                ),
+                buildTextField(
+                  'Mã thiết bị *',
+                  Icon(Icons.vpn_key),
+                  TextInputType.visiblePassword,
+                  deviceIdController,
+                ),
+                buildTextField(
                   'Ghi chú',
                   Icon(Icons.vpn_key),
                   TextInputType.text,
                   noteController,
                 ),
+                Text(
+                  'Cài đặt thời gian theo dõi : ',
+                  style: TextStyle(fontSize: 18),
+                ),
+                morningTime(),
+                afternoonTime(),
+                FlatButton(
+                    onPressed: () {
+                      navigatorPush(context, MultipleDatePicker(
+                        datePickerCallback: (value) {
+                          List<DateTime> dates = value;
+                          dates.forEach((element) {
+                            stringDates
+                                .add(DateFormat('dd/MM/yyyy').format(element));
+                          });
+                          relaxTime = '';
+                          relaxTime = stringDates.toString();
+                          Bus b = Bus(
+                            busIdController.text,
+                            utf8.encode(busNameController.text).toString(),
+                            vehicleIdController.text,
+                            driverIdController.text,
+                            monitorIdController.text,
+                            deviceIdController.text,
+                            utf8.encode(noteController.text).toString(),
+                            '$morningStartTime:$morningEndTime',
+                            '$afternoonStartTime:$afternoonEndTime',
+                            stringDates,
+                            stringDates,
+                            Constants.mac,
+                          );
+                          // publishMessage('registerTuyenxe', jsonEncode(b));
+                          print(
+                              '_AddBusScreenState.buildButton ${jsonEncode(b)}');
+                          publishMessage(REGISTER_LICH_KLV, jsonEncode(b));
+                          setState(() {});
+                        },
+                      ));
+                    },
+                    child: wrapText(
+                        relaxTime == '' ? 'Chọn lịch nghỉ' : relaxTime)),
+                // buildTextField(
+                //   'Khu vực',
+                //   Icon(Icons.vpn_key),
+                //   TextInputType.visiblePassword,
+                //   idController,
+                // ),
+                // buildDescriptionContainer(
+                //   'Mô tả',
+                //   Icon(Icons.description),
+                //   TextInputType.text,
+                //   _descriptionController,
+                // ),
                 deleteButton(),
                 buildButton(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget wrapText(String text) {
+    double cWidth = MediaQuery.of(context).size.width * 1;
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      width: cWidth,
+      child: Column(
+        children: <Widget>[
+          Text(
+            text,
+            textAlign: TextAlign.left,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
       ),
     );
   }
@@ -214,18 +310,20 @@ class _EditBusDialogState extends State<EditBusDialog> {
                 new FlatButton(
                   onPressed: () {
                     pubTopic = DELETE_BUS;
-                    var b = Bus(
-                        widget.bus.matx,
-                        '',
-                        widget.bus.maxe,
-                        driverIdController.text,
-                        monitorIdController.text,
-                        deviceIdController.text,
-                        '',
-                        '',
-                        '',
-                        '',
-                        Constants.mac);
+                    Bus b = Bus(
+                      busIdController.text,
+                      utf8.encode(busNameController.text).toString(),
+                      vehicleIdController.text,
+                      driverIdController.text,
+                      monitorIdController.text,
+                      deviceIdController.text,
+                      utf8.encode(noteController.text).toString(),
+                      '$morningStartTime:$morningEndTime',
+                      '$afternoonStartTime:$afternoonEndTime',
+                      stringDates.toString(),
+                      '',
+                      Constants.mac,
+                    );
                     publishMessage(pubTopic, jsonEncode(b));
                   },
                   child: new Text(
@@ -297,9 +395,24 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      morningStartTime = '${value.hour} : ${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  morningStartTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$morningStartTime:$morningEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDS, jsonEncode(b));
+                });
               },
               child: Text('Bắt đầu $morningStartTime'),
               color: Colors.blue,
@@ -309,9 +422,24 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      morningEndTime = '${value.hour} : ${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  morningEndTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$morningStartTime:$morningEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDS, jsonEncode(b));
+                });
               },
               child: Text('Kết thúc $morningEndTime'),
               color: Colors.red,
@@ -335,9 +463,24 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      afternoonStartTime = '${value.hour} : ${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  afternoonStartTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$afternoonStartTime:$afternoonEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDC, jsonEncode(b));
+                });
               },
               child: Text('Bắt đầu $afternoonStartTime'),
               color: Colors.blue,
@@ -347,9 +490,24 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      afternoonEndTime = '${value.hour} : ${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  afternoonEndTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$afternoonStartTime:$afternoonEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDC, jsonEncode(b));
+                });
               },
               child: Text('Kết thúc $afternoonEndTime'),
               color: Colors.red,
@@ -445,6 +603,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
         monitorIdController.text,
         deviceIdController.text,
         utf8.encode(noteController.text).toString(),
+        '',
         '',
         '',
         '',

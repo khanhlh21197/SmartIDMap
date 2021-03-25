@@ -19,6 +19,10 @@ class AddBusScreen extends StatefulWidget {
 }
 
 class _AddBusScreenState extends State<AddBusScreen> {
+  final String REGISTER_LICH_KLV = 'registerlichklv';
+  final String TX_HDS = 'updateTuyenxegiohds';
+  final String TX_HDC = 'updateTuyenxegiohdc';
+
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   MQTTClientWrapper mqttClientWrapper;
@@ -161,11 +165,26 @@ class _AddBusScreenState extends State<AddBusScreen> {
                             stringDates
                                 .add(DateFormat('dd/MM/yyyy').format(element));
                           });
-                          stringDates.forEach((element) {
-                            print('$element');
-                          });
                           relaxTime = '';
                           relaxTime = stringDates.toString();
+                          Bus b = Bus(
+                            busIdController.text,
+                            utf8.encode(busNameController.text).toString(),
+                            vehicleIdController.text,
+                            driverIdController.text,
+                            monitorIdController.text,
+                            deviceIdController.text,
+                            utf8.encode(noteController.text).toString(),
+                            '$morningStartTime:$morningEndTime',
+                            '$afternoonStartTime:$afternoonEndTime',
+                            stringDates.toString(),
+                            relaxTime,
+                            Constants.mac,
+                          );
+                          // publishMessage('registerTuyenxe', jsonEncode(b));
+                          print(
+                              '_AddBusScreenState.buildButton ${jsonEncode(b)}');
+                          publishMessage(REGISTER_LICH_KLV, jsonEncode(b));
                           setState(() {});
                         },
                       ));
@@ -255,9 +274,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      morningStartTime = '${value.hour}:${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  morningStartTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$morningStartTime:$morningEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDS, jsonEncode(b));
+                });
               },
               child: Text('Bắt đầu $morningStartTime'),
               color: Colors.blue,
@@ -267,9 +301,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      morningEndTime = '${value.hour}:${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  morningEndTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$morningStartTime:$morningEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDS, jsonEncode(b));
+                });
               },
               child: Text('Kết thúc $morningEndTime'),
               color: Colors.red,
@@ -293,9 +342,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      afternoonStartTime = '${value.hour}:${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  afternoonStartTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$afternoonStartTime:$afternoonEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDC, jsonEncode(b));
+                });
               },
               child: Text('Bắt đầu $afternoonStartTime'),
               color: Colors.blue,
@@ -305,9 +369,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: FlatButton(
               onPressed: () {
-                showTimerPicker((value) => {
-                      afternoonEndTime = '${value.hour}:${value.minute}',
-                    });
+                showTimerPicker((value) {
+                  afternoonEndTime = '${value.hour}:${value.minute}';
+                  Bus b = Bus(
+                    busIdController.text,
+                    utf8.encode(busNameController.text).toString(),
+                    vehicleIdController.text,
+                    driverIdController.text,
+                    monitorIdController.text,
+                    deviceIdController.text,
+                    utf8.encode(noteController.text).toString(),
+                    '$morningStartTime:$morningEndTime',
+                    '$afternoonStartTime:$afternoonEndTime',
+                    stringDates.toString(),
+                    '$afternoonStartTime:$afternoonEndTime',
+                    Constants.mac,
+                  );
+                  publishMessage(TX_HDC, jsonEncode(b));
+                });
               },
               child: Text('Kết thúc $afternoonEndTime'),
               color: Colors.red,
@@ -477,6 +556,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   '$morningStartTime:$morningEndTime',
                   '$afternoonStartTime:$afternoonEndTime',
                   stringDates.toString(),
+                  '',
                   Constants.mac,
                 );
                 // publishMessage('registerTuyenxe', jsonEncode(b));
