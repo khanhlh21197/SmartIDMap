@@ -215,26 +215,69 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget _emailPasswordWidget() {
     return Column(
       children: <Widget>[
-        _entryField("Tên đăng nhập", _emailController),
-        _entryField("Mật khẩu", _passwordController, isPassword: true),
-        _entryField("Tên", _nameController),
-        _entryField("SĐT", _phoneNumberController),
+//        _entryField("Tên đăng nhập", _emailController),
+//        _entryField("Mật khẩu", _passwordController, isPassword: true),
+//        _entryField("Tên", _nameController),
+//        _entryField("SĐT", _phoneNumberController),
+        buildTextField("Tên đăng nhập", Icon(Icons.account_box_outlined),
+            TextInputType.text, _emailController),
+        buildTextField("Mật khẩu", Icon(Icons.security), TextInputType.text,
+            _passwordController,
+            obscureText: true),
+        buildTextField("Tên", Icon(Icons.perm_identity), TextInputType.text,
+            _nameController),
+        buildTextField("SĐT", Icon(Icons.phone_android), TextInputType.text,
+            _phoneNumberController),
         addressContainer(),
         Container(
           width: double.infinity,
           height: 300,
           child: MapViewStudent(lat: lat, lon: long),
         ),
-        // _dropDownPermission(),
+        _dropDownPermission(),
         // _dropDownDepartment(),
       ],
     );
   }
 
+  Widget buildTextField(String labelText, Icon prefixIcon,
+      TextInputType keyboardType, TextEditingController controller,
+      {obscureText: false}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      height: 44,
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        autocorrect: false,
+        textCapitalization: TextCapitalization.sentences,
+        decoration: InputDecoration(
+          labelText: labelText,
+          // labelStyle: ,
+          // hintStyle: ,
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.green),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: Colors.red),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 0,
+            horizontal: 20,
+          ),
+          // suffixIcon: Icon(Icons.account_balance_outlined),
+          prefixIcon: prefixIcon,
+        ),
+      ),
+    );
+  }
+
   Widget addressContainer() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       height: 44,
       child: TextField(
         onTap: () async {
@@ -298,43 +341,47 @@ class _SignUpPageState extends State<SignUpPage> {
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
-        title: Text('Đăng ký'),
+        title: Text(widget.title ?? 'Đăng ký'),
         centerTitle: true,
         automaticallyImplyLeading: true,
       ),
-      body: Container(
-        height: height,
-        child: Stack(
-          children: <Widget>[
-            // Positioned(
-            //   top: -MediaQuery.of(context).size.height * .15,
-            //   right: -MediaQuery.of(context).size.width * .4,
-            //   child: BezierContainer(),
-            // ),
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 20),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    // SizedBox(height: height * .1),
-                    SizedBox(
-                      height: 30,
-                    ),
-                    _emailPasswordWidget(),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    _dropDownPermission(),
-                    _submitButton(),
-                    // SizedBox(height: height * .14),
-                    // _loginAccountLabel(),
-                  ],
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).requestFocus(FocusNode());
+        },
+        child: Container(
+          height: height,
+          child: Stack(
+            children: <Widget>[
+              // Positioned(
+              //   top: -MediaQuery.of(context).size.height * .15,
+              //   right: -MediaQuery.of(context).size.width * .4,
+              //   child: BezierContainer(),
+              // ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      // SizedBox(height: height * .1),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      _emailPasswordWidget(),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      _submitButton(),
+                      // SizedBox(height: height * .14),
+                      // _loginAccountLabel(),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

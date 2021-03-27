@@ -100,7 +100,6 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
 
   Widget buildBody() {
     return Container(
-      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -142,20 +141,16 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
   }
 
   Widget buildListView() {
-    return Container(
-      child: Expanded(
-        child: monitors.length != 0
-            ? ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: monitors.length,
-                itemBuilder: (context, index) {
-                  return itemView(index);
-                },
-              )
-            : Center(child: Text('Không có thông tin')),
-      ),
-    );
+    return monitors.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: monitors.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
   }
 
   Widget itemView(int index) {

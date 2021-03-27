@@ -112,7 +112,6 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   Widget buildBody() {
     return Container(
-      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -151,20 +150,16 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
   }
 
   Widget buildListView() {
-    return Container(
-      child: Expanded(
-        child: tbs.length != 0
-            ? ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: tbs.length,
-                itemBuilder: (context, index) {
-                  return itemView(index);
-                },
-              )
-            : Center(child: Text('Không có thông tin')),
-      ),
-    );
+    return tbs.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: tbs.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
   }
 
   Widget itemView(int index) {

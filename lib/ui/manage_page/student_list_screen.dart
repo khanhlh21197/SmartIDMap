@@ -113,7 +113,6 @@ class _StudentListScreenState extends State<StudentListScreen> {
 
   Widget buildBody() {
     return Container(
-      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -155,20 +154,16 @@ class _StudentListScreenState extends State<StudentListScreen> {
   }
 
   Widget buildListView() {
-    return Container(
-      child: Expanded(
-        child: students.length != 0
-            ? ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: students.length,
-                itemBuilder: (context, index) {
-                  return itemView(index);
-                },
-              )
-            : Center(child: Text('Không có thông tin')),
-      ),
-    );
+    return students.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: students.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
   }
 
   Widget itemView(int index) {
@@ -210,11 +205,11 @@ class _StudentListScreenState extends State<StudentListScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(students[index].tenDecode, 4),
+                  buildTextData(students[index].tenDecode ?? '', 4),
                   verticalLine(),
-                  buildTextData(students[index].mahs, 2),
+                  buildTextData(students[index].mahs ?? '', 2),
                   verticalLine(),
-                  buildTextData('${students[index].nhaDecode}', 2),
+                  buildTextData(students[index].nhaDecode ?? '', 2),
                 ],
               ),
             ),

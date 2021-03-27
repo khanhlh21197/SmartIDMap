@@ -15,6 +15,10 @@ import 'package:smartid_map/navigator.dart';
 import 'ui/edit_ui/edit_user_dialog.dart';
 
 class UserProfilePage extends StatefulWidget {
+  final bool switchValue;
+
+  const UserProfilePage({Key key, this.switchValue}) : super(key: key);
+
   @override
   _UserProfilePageState createState() => _UserProfilePageState();
 }
@@ -69,17 +73,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   void getInfoUser() async {
-    var switchValue = await sharedPrefsHelper.getBoolValuesSF('switchValue');
-    if (switchValue) {
-      pubTopic = GET_INFO_USER;
-    } else {
+    if (widget.switchValue) {
       pubTopic = GET_INFO_PARENT;
+    } else {
+      pubTopic = GET_INFO_USER;
     }
     String email = await sharedPrefsHelper.getStringValuesSF('email');
     String password = await sharedPrefsHelper.getStringValuesSF('password');
     if (email.isNotEmpty && password.isNotEmpty) {
-      User user = User(Constants.mac, email, password, '', '', '', '', '', '');
-      mqttClientWrapper.publishMessage('getinfouser', jsonEncode(user));
+      User user = User(Constants.mac, email, password, '', '', '', '', '', '',
+          maph: email);
+      mqttClientWrapper.publishMessage(pubTopic, jsonEncode(user));
     }
     showLoadingDialog();
   }
@@ -102,16 +106,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(15), color: color),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 Text(
                   title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 18,
                       fontWeight: FontWeight.w600),
                 ),
-                icon != null ? icon : Spacer(),
+                icon ?? Spacer(),
               ],
             ))
       ],

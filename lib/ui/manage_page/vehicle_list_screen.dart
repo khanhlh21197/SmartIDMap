@@ -113,7 +113,6 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   Widget buildBody() {
     return Container(
-      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -155,20 +154,16 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
   }
 
   Widget buildListView() {
-    return Container(
-      child: Expanded(
-        child: vehicles.length != 0
-            ? ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: vehicles.length,
-                itemBuilder: (context, index) {
-                  return itemView(index);
-                },
-              )
-            : Center(child: Text('Không có thông tin')),
-      ),
-    );
+    return vehicles.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: vehicles.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
   }
 
   Widget itemView(int index) {

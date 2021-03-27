@@ -296,6 +296,7 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                if (idController.text.isEmpty) return;
                 Monitor m = Monitor(
                     utf8.encode(nameController.text).toString(),
                     phoneNumberController.text,

@@ -1,4 +1,4 @@
-package com.example.smartid_map
+package com.techno.smartid_map
 
 import io.flutter.embedding.android.FlutterActivity
 

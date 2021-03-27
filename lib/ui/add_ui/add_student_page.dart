@@ -21,6 +21,10 @@ import 'package:smartid_map/model/thietbi.dart';
 import '../../response/device_response.dart';
 
 class AddStudentScreen extends StatefulWidget {
+  final bool isParent;
+
+  const AddStudentScreen({Key key, this.isParent}) : super(key: key);
+
   @override
   _AddStudentScreenState createState() => _AddStudentScreenState();
 }
@@ -29,6 +33,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   static const GET_BUS = 'getTuyenxe';
   static const REGISTER_STUDENT = 'registerHS';
   static const GET_PARENT = 'getph';
+  static const GET_STUDENT = 'getHSkmaph';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
@@ -57,6 +62,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   List<User> parents = List();
   var dropDownParents = ['   '];
   var parentID;
+
+  List<Student> students = List();
+  var dropDownStudents = ['   '];
+  var studentID;
 
   @override
   void initState() {
@@ -105,13 +114,15 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                   TextInputType.text,
                   phoneNumberController,
                 ),
-                idDeviceContainer(
-                  'Mã học sinh *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  studentIdController,
-                ),
-                _dropDownParent(),
+                widget.isParent
+                    ? _dropDownStudent()
+                    : idDeviceContainer(
+                        'Mã học sinh *',
+                        Icon(Icons.vpn_key),
+                        TextInputType.visiblePassword,
+                        studentIdController,
+                      ),
+                widget.isParent ? Container() : _dropDownParent(),
                 // idDeviceContainer(
                 //   'Mã phụ huynh',
                 //   Icon(Icons.vpn_key),
@@ -268,8 +279,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                if(studentID == null && studentIdController.text.isEmpty){
+                  return;
+                }
                 Student s = Student(
-                    studentIdController.text,
+                    studentID ?? studentIdController.text,
                     utf8.encode(studentNameController.text).toString(),
                     phoneNumberController.text,
                     utf8.encode(addressController.text).toString(),
@@ -408,6 +422,57 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     );
   }
 
+  Widget _dropDownStudent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Chọn HS",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: studentID,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  studentID = data;
+                  print(studentID);
+                });
+              },
+              items: dropDownStudents
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void showLoadingDialog() {
     Dialogs.showLoadingDialog(context, _keyLoader);
   }
@@ -420,7 +485,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    getParent();
+    if (widget.isParent) {
+      getStudentId();
+    } else {
+      getParent();
+    }
   }
 
   void handle(String message) {
@@ -453,12 +522,27 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         });
         setState(() {});
         break;
+      case GET_STUDENT:
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        print('_StudentBusScreenState.handle ${parents.length}');
+        dropDownStudents.clear();
+        students.forEach((element) {
+          dropDownStudents.add(element.maph);
+        });
+        setState(() {});
+        break;
     }
   }
 
   void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_PARENT;
+    publishMessage(pubTopic, jsonEncode(t));
+  }
+
+  void getStudentId() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
   }
 

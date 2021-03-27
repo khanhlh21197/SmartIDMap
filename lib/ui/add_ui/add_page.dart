@@ -80,7 +80,7 @@ class _AddScreenState extends State<AddScreen> {
             horizontalLine(),
             buildButton('Phụ huynh', Icons.add, 7),
             horizontalLine(),
-            buildButton('Học sinh - Tuyến xe', Icons.add, 6),
+            buildButton('HS - TX - PH', Icons.add, 6),
           ],
         ),
       ),
@@ -111,7 +111,11 @@ class _AddScreenState extends State<AddScreen> {
             navigatorPush(context, AddBusScreen());
             break;
           case 5:
-            navigatorPush(context, AddStudentScreen());
+            navigatorPush(
+                context,
+                AddStudentScreen(
+                  isParent: false,
+                ));
             break;
           case 6:
             navigatorPush(context, StudentBusScreen());
@@ -120,6 +124,7 @@ class _AddScreenState extends State<AddScreen> {
             navigatorPush(
                 context,
                 SignUpPage(
+                  title: 'Đăng ký phụ huynh',
                   isAdmin: false,
                 ));
             break;
@@ -129,7 +134,6 @@ class _AddScreenState extends State<AddScreen> {
         height: 80,
         margin: const EdgeInsets.symmetric(vertical: 2),
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.transparent,
           // borderRadius: BorderRadius.circular(
@@ -162,8 +166,9 @@ class _AddScreenState extends State<AddScreen> {
             ),
             Text(
               text,
+              textAlign: TextAlign.left,
               style: TextStyle(
-                fontSize: 25,
+                fontSize: 22,
               ),
             ),
             Spacer(),

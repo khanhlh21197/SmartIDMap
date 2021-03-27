@@ -218,6 +218,9 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                if (idController.text.isEmpty) {
+                  return;
+                }
                 ThietBi tb = ThietBi(
                   idController.text,
                   currentSelectedValue,

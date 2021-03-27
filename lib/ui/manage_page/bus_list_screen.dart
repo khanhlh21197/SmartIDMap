@@ -116,7 +116,6 @@ class _BusListScreenState extends State<BusListScreen> {
 
   Widget buildBody() {
     return Container(
-      height: 400,
       child: Column(
         children: [
           buildTableTitle(),
@@ -158,20 +157,16 @@ class _BusListScreenState extends State<BusListScreen> {
   }
 
   Widget buildListView() {
-    return Container(
-      child: Expanded(
-        child: buses.length != 0
-            ? ListView.builder(
-                scrollDirection: Axis.vertical,
-                shrinkWrap: true,
-                itemCount: buses.length,
-                itemBuilder: (context, index) {
-                  return itemView(index);
-                },
-              )
-            : Center(child: Text('Không có thông tin')),
-      ),
-    );
+    return buses.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: buses.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
   }
 
   Widget itemView(int index) {

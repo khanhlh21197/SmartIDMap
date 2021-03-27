@@ -224,6 +224,7 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                if (vehicleIdController.text.isEmpty) return;
                 Vehicle v = Vehicle(
                     vehicleIdController.text,
                     vehicleTypeController.text,

@@ -98,15 +98,21 @@ class _MainScreenState extends State<MainScreen> {
           ManageScreen(),
           NotificationScreen(),
           AddScreen(),
-          UserProfilePage(),
+          UserProfilePage(
+            switchValue: false,
+          ),
         ];
         break;
       case 2:
         _widgetOptions = <Widget>[
           HomePage(),
           NotificationScreen(),
-          AddStudentScreen(),
-          UserProfilePage(),
+          AddStudentScreen(
+            isParent: true,
+          ),
+          UserProfilePage(
+            switchValue: true,
+          ),
         ];
         break;
     }

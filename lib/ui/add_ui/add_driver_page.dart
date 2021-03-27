@@ -283,6 +283,7 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                if (driverIdController.text.isEmpty) return;
                 Driver d = Driver(
                     utf8.encode(driverNameController.text).toString(),
                     phoneNumberController.text,
