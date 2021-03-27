@@ -121,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     });
     try {
-      playerid = await status.subscriptionStatus.userId;
+      playerid = await status.subscriptionStatus.userId ?? '';
     } catch (e) {
       print('_LoginPageState._tryLogin error: ${e.toString()}');
     }
