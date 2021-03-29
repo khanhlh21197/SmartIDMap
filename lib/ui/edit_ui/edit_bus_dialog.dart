@@ -5,8 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/response/mqtt_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/model/driver.dart';
+import 'package:smartid_map/model/monitor.dart';
+import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/vehicle.dart';
 import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/ui/multiple_date_picker/multiple_date_picker_page.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
@@ -27,6 +32,7 @@ class EditBusDialog extends StatefulWidget {
 class _EditBusDialogState extends State<EditBusDialog> {
   static const UPDATE_BUS = 'updateTuyenxe';
   static const DELETE_BUS = 'deleteTuyenxe';
+  static const GET_ID_ALL = 'getmaall';
 
   final String REGISTER_LICH_KLV = 'registerlichklv';
   final String TX_HDS = 'updateTuyenxegiohds';
@@ -62,10 +68,26 @@ class _EditBusDialogState extends State<EditBusDialog> {
   String _rangeCount = '';
   List<String> stringDates = List();
 
+  List<Monitor> monitors = List();
+  var dropDownMonitors = [''];
+  String monitorId;
+
+  List<Driver> drivers = List();
+  var dropDownDrivers = [''];
+  String driverId;
+
+  List<ThietBi> devices = List();
+  var dropDownDevices = [''];
+  String deviceId;
+
+  List<Vehicle> vehicles = List();
+  var dropDownVehicles = [''];
+  String vehicleId;
+
   @override
   void initState() {
-    initMqtt();
     initController();
+    initMqtt();
     super.initState();
   }
 
@@ -73,31 +95,270 @@ class _EditBusDialogState extends State<EditBusDialog> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
+    getIdAll();
+  }
+
+  void getIdAll() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_ID_ALL;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
   }
 
   void handle(String message) {
     Map responseMap = jsonDecode(message);
-    if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
-      switch (pubTopic) {
-        case UPDATE_BUS:
+    switch (pubTopic) {
+      case UPDATE_BUS:
+        if (responseMap['result'] == 'true' &&
+            responseMap['errorCode'] == '0') {
           widget.updateCallback(updatedBus);
-          break;
-        case DELETE_BUS:
+          Navigator.of(context).pop();
+        }
+        break;
+      case DELETE_BUS:
+        if (responseMap['result'] == 'true' &&
+            responseMap['errorCode'] == '0') {
           widget.deleteCallback('true');
           Navigator.of(context).pop();
-      }
-      Navigator.of(context).pop();
+          Navigator.of(context).pop();
+        }
+        break;
+      case GET_ID_ALL:
+        var response = MqttResponse.fromJson(responseMap);
+        dropDownVehicles.clear();
+        dropDownDrivers.clear();
+        dropDownMonitors.clear();
+        dropDownDevices.clear();
+        response.id.maxe.forEach((element) {
+          dropDownVehicles.add(element.maxe);
+        });
+        response.id.malx.forEach((element) {
+          dropDownDrivers.add(element.malx);
+        });
+        response.id.mags.forEach((element) {
+          dropDownMonitors.add(element.mags);
+        });
+        response.id.matb.forEach((element) {
+          dropDownDevices.add(element.matb);
+        });
+        vehicleId = widget.bus.maxe ?? dropDownVehicles[0];
+        monitorId = widget.bus.mags ?? dropDownMonitors[0];
+        driverId = widget.bus.malx ?? dropDownDrivers[0];
+        deviceId = widget.bus.matb ?? dropDownDevices[0];
+        setState(() {});
+        break;
     }
   }
 
+  Widget _dropDownMonitor() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Giám sát",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: monitorId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  monitorId = data;
+                  print(monitorId);
+                });
+              },
+              items: dropDownMonitors
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownVehicle() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Xe",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: vehicleId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  vehicleId = data;
+                  print(vehicleId);
+                });
+              },
+              items: dropDownVehicles
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownDriver() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lái xe",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: driverId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  driverId = data;
+                  print(driverId);
+                });
+              },
+              items:
+                  dropDownDrivers.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownDevice() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Thiết bị",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: deviceId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  deviceId = data;
+                  print(deviceId);
+                });
+              },
+              items:
+                  dropDownDevices.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void initController() async {
+    print('_EditBusDialogState.initController ${widget.bus.toString()}');
     busNameController.text = widget.bus.tenDecode;
     busIdController.text = widget.bus.matx;
-    vehicleIdController.text = widget.bus.maxe;
     noteController.text = widget.bus.ghichuDecode;
-    monitorIdController.text = widget.bus.mags;
-    driverIdController.text = widget.bus.malx;
-    deviceIdController.text = widget.bus.matb;
   }
 
   @override
@@ -129,30 +390,18 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   TextInputType.text,
                   busNameController,
                 ),
-                buildTextField(
-                  'Mã xe',
-                  Icon(Icons.vpn_key),
-                  TextInputType.text,
-                  vehicleIdController,
-                ),
-                buildTextField(
-                  'Mã giám sát *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  monitorIdController,
-                ),
-                buildTextField(
-                  'Mã lái xe *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  driverIdController,
-                ),
-                buildTextField(
-                  'Mã thiết bị *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  deviceIdController,
-                ),
+                dropDownDevices.isNotEmpty
+                    ? _dropDownDevice()
+                    : CircularProgressIndicator(),
+                dropDownDrivers.isNotEmpty
+                    ? _dropDownDriver()
+                    : CircularProgressIndicator(),
+                dropDownMonitors.isNotEmpty
+                    ? _dropDownMonitor()
+                    : CircularProgressIndicator(),
+                dropDownVehicles.isNotEmpty
+                    ? _dropDownVehicle()
+                    : CircularProgressIndicator(),
                 buildTextField(
                   'Ghi chú',
                   Icon(Icons.vpn_key),
@@ -179,10 +428,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                           Bus b = Bus(
                             busIdController.text,
                             utf8.encode(busNameController.text).toString(),
-                            vehicleIdController.text,
-                            driverIdController.text,
-                            monitorIdController.text,
-                            deviceIdController.text,
+                            vehicleId,
+                            driverId,
+                            monitorId,
+                            deviceId,
                             utf8.encode(noteController.text).toString(),
                             '$morningStartTime:$morningEndTime',
                             '$afternoonStartTime:$afternoonEndTime',
@@ -198,8 +447,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                         },
                       ));
                     },
-                    child: wrapText(
-                        relaxTime == '' ? 'Chọn lịch nghỉ' : relaxTime)),
+                    child: wrapText('Chọn lịch nghỉ ${relaxTime ?? ''}')),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -313,10 +561,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     Bus b = Bus(
                       busIdController.text,
                       utf8.encode(busNameController.text).toString(),
-                      vehicleIdController.text,
-                      driverIdController.text,
-                      monitorIdController.text,
-                      deviceIdController.text,
+                      vehicleId,
+                      driverId,
+                      monitorId,
+                      deviceId,
                       utf8.encode(noteController.text).toString(),
                       '$morningStartTime:$morningEndTime',
                       '$afternoonStartTime:$afternoonEndTime',
@@ -400,10 +648,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -427,10 +675,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -468,10 +716,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -495,10 +743,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -598,10 +846,10 @@ class _EditBusDialogState extends State<EditBusDialog> {
     updatedBus = Bus(
         busIdController.text,
         utf8.encode(busNameController.text).toString(),
-        vehicleIdController.text,
-        driverIdController.text,
-        monitorIdController.text,
-        deviceIdController.text,
+        vehicleId,
+        driverId,
+        monitorId,
+        deviceId,
         utf8.encode(noteController.text).toString(),
         '',
         '',

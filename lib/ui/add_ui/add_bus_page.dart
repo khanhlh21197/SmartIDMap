@@ -7,10 +7,13 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/response/mqtt_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
-import 'package:smartid_map/navigator.dart';
-import 'package:smartid_map/ui/multiple_date_picker/multiple_date_picker_page.dart';
+import 'package:smartid_map/model/driver.dart';
+import 'package:smartid_map/model/monitor.dart';
+import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/model/vehicle.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class AddBusScreen extends StatefulWidget {
@@ -22,6 +25,17 @@ class _AddBusScreenState extends State<AddBusScreen> {
   final String REGISTER_LICH_KLV = 'registerlichklv';
   final String TX_HDS = 'updateTuyenxegiohds';
   final String TX_HDC = 'updateTuyenxegiohdc';
+  static const GET_MONITOR = 'getgiamsat';
+  static const GET_DRIVER = 'getlaixe';
+  static const GET_DEVICE = 'gettb';
+  static const GET_VEHICLE = 'getXe';
+  static const REGISTER_BUS = 'registerTuyenxe';
+  static const GET_ID_ALL = 'getmaall';
+
+  final String SUB_MONITOR = Constants.mac + 'monitor';
+  final String SUB_DRIVER = Constants.mac + 'driver';
+  final String SUB_DEVICE = Constants.mac + 'device';
+  final String SUB_VEHICLE = Constants.mac + 'vehicle';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
@@ -54,10 +68,63 @@ class _AddBusScreenState extends State<AddBusScreen> {
   String currentSelectedValue;
   List<String> stringDates = List();
 
+  List<Monitor> monitors = List();
+  var dropDownMonitors = ['   '];
+  var monitorId;
+
+  List<Driver> drivers = List();
+  var dropDownDrivers = ['   '];
+  var driverId;
+
+  List<ThietBi> devices = List();
+  var dropDownDevices = ['   '];
+  var deviceId;
+
+  List<Vehicle> vehicles = List();
+  var dropDownVehicles = ['   '];
+  var vehicleId;
+
+  var pubTopic = '';
+
   @override
   void initState() {
     initMqtt();
     super.initState();
+  }
+
+  void getDevices() async {
+    ThietBi t = ThietBi('', '', '', '', '', SUB_DEVICE);
+    pubTopic = GET_DEVICE;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
+  }
+
+  void getMonitors() async {
+    ThietBi t = ThietBi('', '', '', '', '', SUB_MONITOR);
+    pubTopic = GET_MONITOR;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
+  }
+
+  void getDrivers() async {
+    ThietBi t = ThietBi('', '', '', '', '', SUB_DRIVER);
+    pubTopic = GET_DRIVER;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
+  }
+
+  void getVehicles() async {
+    ThietBi t = ThietBi('', '', '', '', '', SUB_VEHICLE);
+    pubTopic = GET_VEHICLE;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
+  }
+
+  void getIdAll() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_ID_ALL;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
   }
 
   void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
@@ -115,82 +182,62 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   busIdController,
                 ),
                 idDeviceContainer(
-                  'Mã xe *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  vehicleIdController,
-                ),
-                idDeviceContainer(
                   'Tên tuyến xe',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
                   busNameController,
                 ),
-                idDeviceContainer(
-                  'Mã giám sát *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  monitorIdController,
-                ),
-                idDeviceContainer(
-                  'Mã lái xe *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  driverIdController,
-                ),
-                idDeviceContainer(
-                  'Mã thiết bị *',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  deviceIdController,
-                ),
+                _dropDownDevice(),
+                _dropDownDriver(),
+                _dropDownMonitor(),
+                _dropDownVehicle(),
                 buildTextField(
                   'Ghi chú',
                   Icon(Icons.email),
                   TextInputType.text,
                   noteController,
                 ),
-                Text(
-                  'Cài đặt thời gian theo dõi : ',
-                  style: TextStyle(fontSize: 18),
-                ),
-                morningTime(),
-                afternoonTime(),
-                FlatButton(
-                    onPressed: () {
-                      navigatorPush(context, MultipleDatePicker(
-                        datePickerCallback: (value) {
-                          List<DateTime> dates = value;
-                          dates.forEach((element) {
-                            stringDates
-                                .add(DateFormat('dd/MM/yyyy').format(element));
-                          });
-                          relaxTime = '';
-                          relaxTime = stringDates.toString();
-                          Bus b = Bus(
-                            busIdController.text,
-                            utf8.encode(busNameController.text).toString(),
-                            vehicleIdController.text,
-                            driverIdController.text,
-                            monitorIdController.text,
-                            deviceIdController.text,
-                            utf8.encode(noteController.text).toString(),
-                            '$morningStartTime:$morningEndTime',
-                            '$afternoonStartTime:$afternoonEndTime',
-                            stringDates.toString(),
-                            relaxTime,
-                            Constants.mac,
-                          );
-                          // publishMessage('registerTuyenxe', jsonEncode(b));
-                          print(
-                              '_AddBusScreenState.buildButton ${jsonEncode(b)}');
-                          publishMessage(REGISTER_LICH_KLV, jsonEncode(b));
-                          setState(() {});
-                        },
-                      ));
-                    },
-                    child: wrapText(
-                        relaxTime == '' ? 'Chọn lịch nghỉ' : relaxTime)),
+                // Text(
+                //   'Cài đặt thời gian theo dõi : ',
+                //   style: TextStyle(fontSize: 18),
+                // ),
+                // morningTime(),
+                // afternoonTime(),
+                // FlatButton(
+                //     onPressed: () {
+                //       navigatorPush(context, MultipleDatePicker(
+                //         datePickerCallback: (value) {
+                //           List<DateTime> dates = value;
+                //           dates.forEach((element) {
+                //             stringDates
+                //                 .add(DateFormat('dd/MM/yyyy').format(element));
+                //           });
+                //           relaxTime = '';
+                //           relaxTime = stringDates.toString();
+                //           Bus b = Bus(
+                //             busIdController.text,
+                //             utf8.encode(busNameController.text).toString(),
+                //             vehicleIdController.text,
+                //             driverIdController.text,
+                //             monitorIdController.text,
+                //             deviceIdController.text,
+                //             utf8.encode(noteController.text).toString(),
+                //             '$morningStartTime:$morningEndTime',
+                //             '$afternoonStartTime:$afternoonEndTime',
+                //             stringDates.toString(),
+                //             relaxTime,
+                //             Constants.mac,
+                //           );
+                //           // publishMessage('registerTuyenxe', jsonEncode(b));
+                //           print(
+                //               '_AddBusScreenState.buildButton ${jsonEncode(b)}');
+                //           publishMessage(REGISTER_LICH_KLV, jsonEncode(b));
+                //           setState(() {});
+                //         },
+                //       ));
+                //     },
+                //     child: wrapText(
+                //         relaxTime == '' ? 'Chọn lịch nghỉ' : relaxTime)),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -279,10 +326,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -306,10 +353,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -347,10 +394,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -374,10 +421,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   Bus b = Bus(
                     busIdController.text,
                     utf8.encode(busNameController.text).toString(),
-                    vehicleIdController.text,
-                    driverIdController.text,
-                    monitorIdController.text,
-                    deviceIdController.text,
+                    vehicleId,
+                    driverId,
+                    monitorId,
+                    deviceId,
                     utf8.encode(noteController.text).toString(),
                     '$morningStartTime:$morningEndTime',
                     '$afternoonStartTime:$afternoonEndTime',
@@ -492,6 +539,210 @@ class _AddBusScreenState extends State<AddBusScreen> {
     );
   }
 
+  Widget _dropDownMonitor() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Giám sát",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: monitorId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  monitorId = data;
+                  print(monitorId);
+                });
+              },
+              items: dropDownMonitors
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownVehicle() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Xe",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: vehicleId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  vehicleId = data;
+                  print(vehicleId);
+                });
+              },
+              items: dropDownVehicles
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownDriver() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lái xe",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: driverId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  driverId = data;
+                  print(driverId);
+                });
+              },
+              items:
+                  dropDownDrivers.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownDevice() {
+    print('_HomePageState._dropDownManage');
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Thiết bị",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: deviceId,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  deviceId = data;
+                  print(deviceId);
+                });
+              },
+              items:
+                  dropDownDevices.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget buildDescriptionContainer(String labelText, Icon prefixIcon,
       TextInputType keyboardType, TextEditingController controller) {
     return Container(
@@ -548,10 +799,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                 Bus b = Bus(
                   busIdController.text,
                   utf8.encode(busNameController.text).toString(),
-                  vehicleIdController.text,
-                  driverIdController.text,
-                  monitorIdController.text,
-                  deviceIdController.text,
+                  vehicleId ?? '',
+                  driverId ?? '',
+                  monitorId ?? '',
+                  deviceId ?? '',
                   utf8.encode(noteController.text).toString(),
                   '$morningStartTime:$morningEndTime',
                   '$afternoonStartTime:$afternoonEndTime',
@@ -559,7 +810,8 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   '',
                   Constants.mac,
                 );
-                // publishMessage('registerTuyenxe', jsonEncode(b));
+                pubTopic = REGISTER_BUS;
+                publishMessage(pubTopic, jsonEncode(b));
                 print('_AddBusScreenState.buildButton ${jsonEncode(b)}');
               },
               color: Colors.blue,
@@ -583,13 +835,81 @@ class _AddBusScreenState extends State<AddBusScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
+    // getDevices();
+    // Future.delayed(Duration(milliseconds: 300), getDrivers);
+    // Future.delayed(Duration(milliseconds: 600), getMonitors);
+    // Future.delayed(Duration(milliseconds: 900), getVehicles);
+    getIdAll();
   }
 
   void handle(String message) {
     Map responseMap = jsonDecode(message);
-    if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
-      Navigator.pop(context);
+
+    switch (pubTopic) {
+      case REGISTER_BUS:
+        if (responseMap['result'] == 'true' &&
+            responseMap['errorCode'] == '0') {
+          Navigator.pop(context);
+        }
+        break;
+      // case GET_DEVICE:
+      //   devices = response.id.map((e) => ThietBi.fromJson(e)).toList();
+      //   dropDownDevices.clear();
+      //   devices.forEach((element) {
+      //     dropDownDevices.add(element.matb);
+      //   });
+      //   setState(() {});
+      //   // hideLoadingDialog();
+      //   break;
+      // case GET_MONITOR:
+      //   monitors = response.id.map((e) => Monitor.fromJson(e)).toList();
+      //   dropDownMonitors.clear();
+      //   monitors.forEach((element) {
+      //     dropDownMonitors.add(element.mags);
+      //   });
+      //   setState(() {});
+      //   // hideLoadingDialog();
+      //   break;
+      // case GET_DRIVER:
+      //   drivers = response.id.map((e) => Driver.fromJson(e)).toList();
+      //   dropDownDrivers.clear();
+      //   drivers.forEach((element) {
+      //     dropDownDrivers.add(element.malx);
+      //   });
+      //   setState(() {});
+      //   // hideLoadingDialog();
+      //   break;
+      // case GET_VEHICLE:
+      //   vehicles = response.id.map((e) => Vehicle.fromJson(e)).toList();
+      //   dropDownVehicles.clear();
+      //   vehicles.forEach((element) {
+      //     dropDownVehicles.add(element.maxe);
+      //   });
+      //   // hideLoadingDialog();
+      //   setState(() {});
+      //   break;
+      case GET_ID_ALL:
+        var response = MqttResponse.fromJson(responseMap);
+        dropDownVehicles.clear();
+        dropDownDrivers.clear();
+        dropDownMonitors.clear();
+        dropDownDevices.clear();
+        response.id.maxe.forEach((element) {
+          dropDownVehicles.add(element.maxe);
+        });
+        response.id.malx.forEach((element) {
+          dropDownDrivers.add(element.malx);
+        });
+        response.id.mags.forEach((element) {
+          dropDownMonitors.add(element.mags);
+        });
+        response.id.matb.forEach((element) {
+          dropDownDevices.add(element.matb);
+        });
+        setState(() {});
+        break;
     }
+    pubTopic = '';
   }
 
   Future<void> publishMessage(String topic, String message) async {

@@ -79,4 +79,9 @@ class Bus {
       'mac': mac,
     };
   }
+
+  @override
+  String toString() {
+    return '$matx - $tentuyen - $maxe - $note - $mac - $malx - $mags - $matb';
+  }
 }
