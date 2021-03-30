@@ -447,7 +447,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                         },
                       ));
                     },
-                    child: wrapText('Chọn lịch nghỉ ${relaxTime ?? ''}')),
+                    child: wrapText('Ngày nghỉ ${relaxTime ?? ''}')),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),
@@ -480,7 +480,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Text(
             text,
             textAlign: TextAlign.left,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
         ],

@@ -1,15 +1,23 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:smartid_map/model/user.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:smartid_map/helper/shared_prefs_helper.dart';
+import 'package:smartid_map/model/user.dart';
 
 import 'constants.dart' as Constants;
 import 'models.dart';
 
 class MQTTClientWrapper {
   MqttServerClient client;
+  String _serverUri = '';
+
+  set serverUri(String serverUri) {
+    _serverUri = serverUri;
+  }
+
+  get serverUri => _serverUri;
 
   MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
   MqttSubscriptionState subscriptionState = MqttSubscriptionState.IDLE;
@@ -17,10 +25,18 @@ class MQTTClientWrapper {
   final VoidCallback onConnectedCallback;
   final Function(String) onMessageArrived;
   Function(String) onSubscribedTopic;
+  SharedPrefsHelper sharedPrefsHelper;
 
   MQTTClientWrapper(this.onConnectedCallback, this.onMessageArrived);
 
   Future<void> prepareMqttClient(String topic) async {
+    sharedPrefsHelper = SharedPrefsHelper();
+    if (_serverUri == '') {
+      _serverUri =
+          await sharedPrefsHelper.getStringValuesSF(Constants.server_uri_key) ??
+              Constants.serverUri;
+      print('MQTTClientWrapper._setupMqttClient $_serverUri');
+    }
     _setupMqttClient();
     await _connectClient();
     _subscribeToTopic(topic);
@@ -57,8 +73,8 @@ class MQTTClientWrapper {
     }
   }
 
-  void _setupMqttClient() {
-    client = MqttServerClient(Constants.serverUri, "client_id");
+  void _setupMqttClient() async {
+    client = MqttServerClient(_serverUri, "client_id");
     client.port = Constants.port;
     client.logging(on: true);
     client.keepAlivePeriod = 20;
