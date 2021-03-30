@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
@@ -9,8 +10,15 @@ import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/response/device_response.dart';
+import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import 'helper/models.dart';
+import 'model/student.dart';
+import 'model/thietbi.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 
 class MapView extends StatefulWidget {
   @override
@@ -18,11 +26,13 @@ class MapView extends StatefulWidget {
 }
 
 class _MapViewState extends State<MapView> {
+  static const GET_STUDENT = 'getHS';
   CameraPosition _initialLocation = CameraPosition(target: LatLng(0.0, 0.0));
   GoogleMapController mapController;
 
   final Geolocator _geolocator = Geolocator();
   MQTTClientWrapper mqttClientWrapper;
+  SharedPrefsHelper sharedPrefsHelper;
 
   Position _currentPosition;
   Position _busPosition;
@@ -36,6 +46,10 @@ class _MapViewState extends State<MapView> {
   String _placeDistance;
   BitmapDescriptor customIcon;
 
+  String pubTopic;
+  String sdtgs;
+  String sdtlx;
+
   var latTemp = 20.999855;
   var lonTemp = 105.723318;
 
@@ -45,7 +59,68 @@ class _MapViewState extends State<MapView> {
   Map<PolylineId, Polyline> polylines = {};
   List<LatLng> polylineCoordinates = [];
 
+  List<Student> students = List();
+  var dropDownStudents = ['   '];
+  var studentID;
+
   final _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  Widget _dropDownStudent() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Chọn HS",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              isExpanded: true,
+              value: studentID,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  studentID = data;
+                  print(studentID);
+                });
+              },
+              items: dropDownStudents
+                  .map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void getStudentId() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(t));
+  }
 
   Widget _textField({
     TextEditingController controller,
@@ -314,6 +389,7 @@ class _MapViewState extends State<MapView> {
   @override
   void initState() {
     initMqtt();
+    getSharedPrefs();
     _getCurrentLocation();
     _busPosition = Position(
       latitude: 20.9862851635164,
@@ -328,6 +404,12 @@ class _MapViewState extends State<MapView> {
       setState(() {});
     });
     super.initState();
+  }
+
+  void getSharedPrefs() async {
+    sharedPrefsHelper = SharedPrefsHelper();
+    sdtgs = await sharedPrefsHelper.getStringValuesSF('sdtgs');
+    sdtlx = await sharedPrefsHelper.getStringValuesSF('sdtlx');
   }
 
   Future<void> busMoving() async {
@@ -416,6 +498,7 @@ class _MapViewState extends State<MapView> {
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
     var width = MediaQuery.of(context).size.width;
+    print('_MapViewState.build ${dropDownStudents.length}');
     return Container(
       height: height,
       width: width,
@@ -423,6 +506,9 @@ class _MapViewState extends State<MapView> {
         key: _scaffoldKey,
         body: Stack(
           children: <Widget>[
+            dropDownStudents.length > 0
+                ? FlatButton(onPressed: () {}, child: Text('ádfadsfasd'))
+                : Container(),
             // Map View
             mapContainer(),
             // Show zoom buttons
@@ -674,7 +760,7 @@ class _MapViewState extends State<MapView> {
                   ),
                 ),
                 onTap: () {
-                  launch("tel://0963003197");
+                  launch("tel://$sdtgs");
                 },
               ),
             ),
@@ -730,6 +816,8 @@ class _MapViewState extends State<MapView> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient('gps');
+
+    getStudentId();
   }
 
   void handle(String message) {
@@ -738,6 +826,20 @@ class _MapViewState extends State<MapView> {
     double lon = double.parse(message.split('&')[1]);
     print('_HomePageState.handle $lat - $lon');
     animateCamera(Position(latitude: lat, longitude: lon));
+
+    Map responseMap = jsonDecode(message);
+    var response = DeviceResponse.fromJson(responseMap);
+
+    switch (pubTopic) {
+      case GET_STUDENT:
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        students.forEach((element) {
+          dropDownStudents.add(element.tenDecode);
+        });
+        setState(() {});
+        break;
+    }
+    pubTopic = '';
     // Map responseMap = jsonDecode(message);
 
     // if (responseMap['result'] == 'true') {
@@ -791,6 +893,16 @@ class _MapViewState extends State<MapView> {
     print('_MapViewState.getBusLocation $printValue');
     Fluttertoast.showToast(msg: printValue);
     return first;
+  }
+
+  Future<void> publishMessage(String topic, String message) async {
+    if (mqttClientWrapper.connectionState ==
+        MqttCurrentConnectionState.CONNECTED) {
+      mqttClientWrapper.publishMessage(topic, message);
+    } else {
+      await initMqtt();
+      mqttClientWrapper.publishMessage(topic, message);
+    }
   }
 
 // Widget _searchMapPlace() {

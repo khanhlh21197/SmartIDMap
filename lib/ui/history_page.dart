@@ -1,0 +1,266 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+import 'package:smartid_map/helper/models.dart';
+import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
+import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/model/thietbi.dart';
+import 'package:smartid_map/response/device_response.dart';
+
+class HistoryScreen extends StatefulWidget {
+  @override
+  _HistoryScreenState createState() => _HistoryScreenState();
+}
+
+class _HistoryScreenState extends State<HistoryScreen> {
+  static const GET_BUS = 'getTuyenxe';
+
+  MQTTClientWrapper mqttClientWrapper;
+  String pubTopic;
+  bool isLoading = true;
+  List<Bus> buses = List();
+
+  @override
+  void initState() {
+    initMqtt();
+    super.initState();
+  }
+
+  Future<void> initMqtt() async {
+    mqttClientWrapper = MQTTClientWrapper(
+            () => print('Success'), (message) => handleDevice(message));
+    await mqttClientWrapper.prepareMqttClient(Constants.mac);
+    getBus();
+  }
+
+  void getBus() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_BUS;
+    publishMessage(pubTopic, jsonEncode(t));
+    showLoadingDialog();
+  }
+
+  Future<void> publishMessage(String topic, String message) async {
+    if (mqttClientWrapper.connectionState ==
+        MqttCurrentConnectionState.CONNECTED) {
+      mqttClientWrapper.publishMessage(topic, message);
+    } else {
+      await initMqtt();
+      mqttClientWrapper.publishMessage(topic, message);
+    }
+  }
+
+  void showLoadingDialog() {
+    setState(() {
+      isLoading = true;
+    });
+    // Dialogs.showLoadingDialog(context, _keyLoader);
+  }
+
+  void hideLoadingDialog() {
+    setState(() {
+      isLoading = false;
+    });
+    // Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
+  }
+
+  Widget buildBody() {
+    return Container(
+      child: Column(
+        children: [
+          buildTableTitle(),
+          horizontalLine(),
+          buildListView(),
+          horizontalLine(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTableTitle() {
+    return Container(
+      color: Colors.yellow,
+      height: 40,
+      child: Row(
+        children: [
+          buildTextLabel('STT', 1),
+          verticalLine(),
+          buildTextLabel('Tên', 4),
+          verticalLine(),
+          buildTextLabel('Mã HS', 2),
+          verticalLine(),
+          buildTextLabel('Mã PH', 2),
+          verticalLine(),
+          buildTextLabel('Mã PH', 2),
+          verticalLine(),
+          buildTextLabel('Thời gian', 2),
+          verticalLine(),
+          buildTextLabel('Ghi chú', 2),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTextLabel(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data,
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget buildListView() {
+    return buses.length != 0
+        ? ListView.builder(
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: buses.length,
+      itemBuilder: (context, index) {
+        return itemView(index);
+      },
+    )
+        : Center(child: Text('Không có thông tin'));
+  }
+
+  Widget itemView(int index) {
+    return InkWell(
+      onTap: () async {
+        await showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return Dialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0)),
+                //this right here
+                child: Container(
+
+                ),
+              );
+            });
+        // selectedIndex = index;
+        // Department d = Department('', '', Constants.mac);
+        // pubTopic = GET_DEPARTMENT;
+        // publishMessage(pubTopic, jsonEncode(d));
+        // showLoadingDialog();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              child: Row(
+                children: [
+                  buildTextData('${index + 1}', 1),
+                  verticalLine(),
+                  buildTextData(buses[index].tenDecode, 4),
+                  verticalLine(),
+                  buildTextData(buses[index].matx, 2),
+                  verticalLine(),
+                  buildTextData(buses[index].matx, 2),
+                  verticalLine(),
+                  buildTextData(buses[index].matx, 2),
+                  verticalLine(),
+                  buildTextData(buses[index].matx, 2),
+                  verticalLine(),
+                  buildTextData('${buses[index].ghichuDecode}', 2),
+                ],
+              ),
+            ),
+            horizontalLine(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextData(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data ?? '',
+        style: TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget buildStatusDevice(bool data, int flexValue) {
+    return Expanded(
+      child: data
+          ? Container(
+        width: 5,
+        height: 5,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.green,
+        ),
+      )
+          : Container(
+        width: 5,
+        height: 5,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.red,
+        ),
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget verticalLine() {
+    return Container(
+      height: double.infinity,
+      width: 1,
+      color: Colors.grey,
+    );
+  }
+
+  Widget horizontalLine() {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      color: Colors.grey,
+    );
+  }
+
+  void removeDevice(int index) async {
+    setState(() {
+      buses.removeAt(index);
+    });
+  }
+
+  void handleDevice(String message) async {
+    Map responseMap = jsonDecode(message);
+    var response = DeviceResponse.fromJson(responseMap);
+
+    switch (pubTopic) {
+      case GET_BUS:
+        buses = response.id.map((e) => Bus.fromJson(e)).toList();
+        setState(() {});
+        hideLoadingDialog();
+        break;
+    }
+    pubTopic = '';
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Lịch sử'),
+        centerTitle: true,
+      ),
+      body: buildBody(),
+    );
+  }
+}

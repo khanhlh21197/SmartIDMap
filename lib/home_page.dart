@@ -29,10 +29,11 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   _HomePageState(this.loginResponse);
 
-  static const GET_STUDENT = 'getHS';
+  static const GET_STUDENT = 'getHSPH';
   final Map loginResponse;
   String iduser;
   MQTTClientWrapper mqttClientWrapper;
+  SharedPrefsHelper sharedPrefsHelper;
   double lat;
   double lon;
   String pubTopic;
@@ -47,12 +48,14 @@ class _HomePageState extends State<HomePage>
   void initState() {
     super.initState();
     initMqtt();
+    sharedPrefsHelper = SharedPrefsHelper();
     WidgetsBinding.instance.addObserver(this);
     getStudents();
   }
 
   void getStudents() async {
-    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    String maph = await sharedPrefsHelper.getStringValuesSF('email');
+    Student t = Student('', '', '', '', maph, Constants.mac);
     pubTopic = GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
@@ -112,7 +115,7 @@ class _HomePageState extends State<HomePage>
       title: 'Geolocation Google Maps Demo',
       home: Stack(
         children: [
-          _dropDownManage(),
+          _dropDownStudent(),
           MapView(),
         ],
       ),
@@ -136,43 +139,52 @@ class _HomePageState extends State<HomePage>
     pubTopic = '';
   }
 
-  Widget _dropDownManage() {
+  Widget _dropDownStudent() {
     print('_HomePageState._dropDownManage');
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text(
-          "Chọn mục quản lý",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        DropdownButton<String>(
-          value: manageValue,
-          icon: Icon(Icons.arrow_drop_down),
-          iconSize: 24,
-          elevation: 16,
-          style: TextStyle(color: Colors.red, fontSize: 18),
-          underline: Container(
-            height: 2,
-            color: Colors.deepPurpleAccent,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Text(
+            "Chọn HS",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
           ),
-          onChanged: (String data) {
-            setState(() {
-              manageValue = data;
-              print(manageValue);
-              if (manageValue == manageValues[0]) {}
-              if (manageValue == manageValues[1]) {}
-              if (manageValue == manageValues[2]) {}
-              if (manageValue == manageValues[3]) {}
-            });
-          },
-          items: manageValues.map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-        )
-      ],
+          DropdownButton<String>(
+            value: manageValue,
+            icon: Icon(Icons.arrow_drop_down),
+            iconSize: 24,
+            elevation: 16,
+            style: TextStyle(color: Colors.red, fontSize: 18),
+            underline: Container(
+              height: 2,
+              color: Colors.deepPurpleAccent,
+            ),
+            onChanged: (String data) {
+              setState(() {
+                manageValue = data;
+                print(manageValue);
+                if (manageValue == manageValues[0]) {}
+                if (manageValue == manageValues[1]) {}
+                if (manageValue == manageValues[2]) {}
+                if (manageValue == manageValues[3]) {}
+              });
+            },
+            items: manageValues.map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          )
+        ],
+      ),
     );
   }
 }

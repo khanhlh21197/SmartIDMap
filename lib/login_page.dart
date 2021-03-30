@@ -15,6 +15,7 @@ import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/signup.dart';
+import 'package:smartid_map/ui/choose_student_screen.dart';
 
 // ignore: must_be_immutable
 class LoginPage extends StatefulWidget {
@@ -136,7 +137,11 @@ class _LoginPageState extends State<LoginPage> {
       }
     } else {
       await initMqtt();
-      mqttClientWrapper.login(user);
+      if (switchValue) {
+        publishMessage('loginph', jsonEncode(user));
+      } else {
+        mqttClientWrapper.login(user);
+      }
     }
   }
 
@@ -170,10 +175,10 @@ class _LoginPageState extends State<LoginPage> {
       await sharedPrefsHelper.addIntToSF('quyen', responseMap['quyen']);
       if (switchValue) {
         navigatorPushAndRemoveUntil(
-            context, MainScreen(quyen: responseMap['quyen'] ?? 2));
+            context, ChooseStudentScreen(quyen: responseMap['quyen'] ?? 2));
       } else {
         navigatorPushAndRemoveUntil(
-            context, MainScreen(quyen: responseMap['quyen'] ?? 1));
+            context, ChooseStudentScreen(quyen: responseMap['quyen'] ?? 1));
       }
       await sharedPrefsHelper.addBoolToSF('switchValue', switchValue);
     } else {
@@ -328,7 +333,7 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    'assets/images/anco_logo.jpg',
+                    'assets/images/iot.jpg',
                   ),
                   // Text(
                   //   'Anco',
@@ -502,6 +507,7 @@ class _LoginPageState extends State<LoginPage> {
             onChanged: (value) {
               setState(() {
                 switchValue = value;
+                print('_LoginPageState.switchContainer $switchValue');
               });
             },
           ),

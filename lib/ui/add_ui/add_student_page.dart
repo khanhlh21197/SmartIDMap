@@ -33,7 +33,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   static const GET_BUS = 'getTuyenxe';
   static const REGISTER_STUDENT = 'registerHS';
   static const GET_PARENT = 'getph';
-  static const GET_STUDENT = 'getHSkmaph';
+  static const GET_STUDENT = 'getHS';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
@@ -70,6 +70,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   @override
   void initState() {
     initMqtt();
+    if (widget.isParent) {
+      getStudentId();
+    } else {
+      getParent();
+    }
     super.initState();
   }
 
@@ -279,7 +284,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
-                if(studentID == null && studentIdController.text.isEmpty){
+                if (studentID == null && studentIdController.text.isEmpty) {
                   return;
                 }
                 Student s = Student(
@@ -485,11 +490,6 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-    if (widget.isParent) {
-      getStudentId();
-    } else {
-      getParent();
-    }
   }
 
   void handle(String message) {
@@ -527,7 +527,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         print('_StudentBusScreenState.handle ${parents.length}');
         dropDownStudents.clear();
         students.forEach((element) {
-          dropDownStudents.add(element.maph);
+          dropDownStudents.add(element.mahs);
         });
         setState(() {});
         break;

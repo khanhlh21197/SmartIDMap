@@ -4,6 +4,7 @@ import 'package:smartid_map/home_page.dart';
 import 'package:smartid_map/notification_page.dart';
 import 'package:smartid_map/ui/add_ui/add_page.dart';
 import 'package:smartid_map/ui/add_ui/add_student_page.dart';
+import 'package:smartid_map/ui/history_page.dart';
 import 'package:smartid_map/ui/manage_page/manage_screen.dart';
 import 'package:smartid_map/user_profile_page.dart';
 
@@ -32,6 +33,10 @@ class _MainScreenState extends State<MainScreen> {
     BottomNavigationBarItem(
       icon: Icon(Icons.add),
       label: 'Thêm',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.access_time),
+      label: 'Lịch sử',
     ),
     BottomNavigationBarItem(
       icon: Icon(
@@ -98,6 +103,7 @@ class _MainScreenState extends State<MainScreen> {
           ManageScreen(),
           NotificationScreen(),
           AddScreen(),
+          HistoryScreen(),
           UserProfilePage(
             switchValue: false,
           ),

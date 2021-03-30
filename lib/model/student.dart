@@ -7,6 +7,7 @@ class Student {
   String nha;
   String mac;
   String maph;
+  String matx;
 
   Student(this.mahs, this.ten, this.sdt, this.nha, this.maph, this.mac);
 
@@ -48,7 +49,8 @@ class Student {
         nha = json['nha'],
         mahs = json['mahs'],
         maph = json['maph'],
-        mac = json['mac'];
+        mac = json['mac'],
+        matx = json['matx'];
 
   Map<String, dynamic> toJson() => {
         'ten': ten,
@@ -57,5 +59,6 @@ class Student {
         'mahs': mahs,
         'maph': maph,
         'mac': mac,
+        'matx': matx,
       };
 }
