@@ -25,12 +25,10 @@ class MQTTClientWrapper {
 
   Future<void> prepareMqttClient(String topic) async {
     sharedPrefsHelper = SharedPrefsHelper();
-    if (_serverUri == '') {
-      _serverUri =
-          await sharedPrefsHelper.getStringValuesSF(Constants.server_uri_key) ??
-              Constants.serverUri;
-      print('MQTTClientWrapper._setupMqttClient $_serverUri');
-    }
+    _serverUri =
+        await sharedPrefsHelper.getStringValuesSF(Constants.server_uri_key) ??
+            Constants.serverUri;
+    print('MQTTClientWrapper._setupMqttClient $_serverUri');
     _setupMqttClient();
     await _connectClient();
     _subscribeToTopic(topic);
