@@ -39,7 +39,6 @@ class _LoginPageState extends State<LoginPage> {
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _serverUriController = TextEditingController();
 
   Widget _circularProgress() {
     return Dialog(
@@ -56,9 +55,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    // mqttClientWrapper =
-    //     MQTTClientWrapper(() => print('Success'), (message) => login(message));
-    // mqttClientWrapper.prepareMqttClient(Constants.mac);
     sharedPrefsHelper = SharedPrefsHelper();
     getSharedPrefs();
   }
@@ -89,10 +85,6 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> initMqtt() async {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => login(message));
-    mqttClientWrapper.serverUri =
-        _serverUriController.text ?? Constants.serverUri;
-    await sharedPrefsHelper.addStringToSF(
-        Constants.server_uri_key, mqttClientWrapper.serverUri);
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
   }
 
@@ -110,7 +102,6 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
-    _serverUriController.dispose();
     super.dispose();
   }
 
@@ -431,41 +422,7 @@ class _LoginPageState extends State<LoginPage> {
         children: <Widget>[
           _entryField("Tên đăng nhập", _emailController),
           _entryField("Mật khẩu", _passwordController, isPassword: true),
-          buildTextField(
-              'Server URI', null, TextInputType.text, _serverUriController),
         ],
-      ),
-    );
-  }
-
-  Widget buildTextField(String labelText, Icon prefixIcon,
-      TextInputType keyboardType, TextEditingController controller) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      height: 44,
-      child: TextField(
-        controller: controller,
-        keyboardType: keyboardType,
-        autocorrect: false,
-        textCapitalization: TextCapitalization.sentences,
-        decoration: InputDecoration(
-          labelText: labelText,
-          // labelStyle: ,
-          // hintStyle: ,
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.green),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 0,
-            horizontal: 20,
-          ),
-          // suffixIcon: Icon(Icons.account_balance_outlined),
-          prefixIcon: prefixIcon,
-        ),
       ),
     );
   }

@@ -11,13 +11,7 @@ import 'models.dart';
 
 class MQTTClientWrapper {
   MqttServerClient client;
-  String _serverUri = '';
-
-  set serverUri(String serverUri) {
-    _serverUri = serverUri;
-  }
-
-  get serverUri => _serverUri;
+  String _serverUri = Constants.serverUri;
 
   MqttCurrentConnectionState connectionState = MqttCurrentConnectionState.IDLE;
   MqttSubscriptionState subscriptionState = MqttSubscriptionState.IDLE;
