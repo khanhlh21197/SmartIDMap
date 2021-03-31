@@ -11,12 +11,14 @@ class EditUserDialog extends StatefulWidget {
   final User user;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
+  final switchValue;
 
   const EditUserDialog({
     Key key,
     this.user,
     this.updateCallback,
     this.deleteCallback,
+    this.switchValue,
   }) : super(key: key);
 
   @override
@@ -26,6 +28,7 @@ class EditUserDialog extends StatefulWidget {
 class _EditUserDialogState extends State<EditUserDialog>
     with SingleTickerProviderStateMixin {
   static const UPDATE_USER = 'updateuser';
+  static const UPDATE_PARENT = 'updateph';
   static const DELETE_USER = 'deleteuser';
   static const CHANGE_PASSWORD = 'updatepass';
   static const GET_DEPARTMENT = 'loginkhoa';
@@ -83,6 +86,7 @@ class _EditUserDialogState extends State<EditUserDialog>
     }
     switch (pubTopic) {
       case UPDATE_USER:
+      case UPDATE_PARENT:
         widget.updateCallback(updatedUser);
         Navigator.pop(context);
         break;
@@ -98,7 +102,7 @@ class _EditUserDialogState extends State<EditUserDialog>
   }
 
   void initController() async {
-    emailController.text = widget.user.user;
+    emailController.text = widget.user.user ?? widget.user.maph;
     passwordController.text = widget.user.pass;
     nameController.text = widget.user.tenDecode;
     phoneController.text = widget.user.sdt;
@@ -415,8 +419,12 @@ class _EditUserDialogState extends State<EditUserDialog>
               onPressed: () {
                 switch (_tabController.index) {
                   case 0:
-                    pubTopic = UPDATE_USER;
-                    _tryEdit();
+                    if (widget.switchValue) {
+                      pubTopic = UPDATE_PARENT;
+                    } else {
+                      pubTopic = UPDATE_USER;
+                    }
+                    _tryEdit(pubTopic);
                     break;
                   case 1:
                     pubTopic = CHANGE_PASSWORD;
@@ -433,7 +441,7 @@ class _EditUserDialogState extends State<EditUserDialog>
     );
   }
 
-  Future<void> _tryEdit() async {
+  Future<void> _tryEdit(String pubTopic) async {
     updatedUser = User(
       Constants.mac,
       emailController.text,
@@ -444,6 +452,7 @@ class _EditUserDialogState extends State<EditUserDialog>
       currentSelectedValue,
       permission,
       '',
+      maph: emailController.text,
     );
     updatedUser.iduser = await sharedPrefsHelper.getStringValuesSF('iduser');
     publishMessage(pubTopic, jsonEncode(updatedUser));

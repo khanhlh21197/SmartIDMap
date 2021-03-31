@@ -12,10 +12,11 @@ import 'package:smartid_map/helper/response/device_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/main_screen.dart';
 import 'package:smartid_map/model/user.dart';
-import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/signup.dart';
-import 'package:smartid_map/ui/choose_student_screen.dart';
+import 'package:smartid_map/ui/choose_student.dart';
+
+import 'navigator.dart';
 
 // ignore: must_be_immutable
 class LoginPage extends StatefulWidget {
@@ -174,11 +175,9 @@ class _LoginPageState extends State<LoginPage> {
       await sharedPrefsHelper.addBoolToSF('login', true);
       await sharedPrefsHelper.addIntToSF('quyen', responseMap['quyen']);
       if (switchValue) {
-        navigatorPushAndRemoveUntil(
-            context, ChooseStudentScreen(quyen: responseMap['quyen'] ?? 2));
+        navigatorPushAndRemoveUntil(context, ChooseStudentPage(quyen: 2));
       } else {
-        navigatorPushAndRemoveUntil(
-            context, ChooseStudentScreen(quyen: responseMap['quyen'] ?? 1));
+        navigatorPushAndRemoveUntil(context, MainScreen(quyen: 1));
       }
       await sharedPrefsHelper.addBoolToSF('switchValue', switchValue);
     } else {

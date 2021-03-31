@@ -27,15 +27,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   static const GET_INFO_USER = 'getinfouser';
   static const GET_INFO_PARENT = 'getinfoph';
   static const GET_DEPARTMENT = 'loginkhoa';
+
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _departmentController = TextEditingController();
-  final TextEditingController _permissionController = TextEditingController();
   User user;
   String pubTopic = '';
   List<Department> departments = List();
@@ -66,10 +60,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
     getInfoUser();
-    // Timer timer;
-    // timer = Timer.periodic(Duration(seconds: 3), (timer) {
-    //   getInfoUser();
-    // });
   }
 
   void getInfoUser() async {
@@ -83,7 +73,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     if (email.isNotEmpty && password.isNotEmpty) {
       User user = User(Constants.mac, email, password, '', '', '', '', '', '',
           maph: email);
-      mqttClientWrapper.publishMessage(pubTopic, jsonEncode(user));
+      publishMessage(pubTopic, jsonEncode(user));
     }
     showLoadingDialog();
   }
@@ -143,6 +133,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     updateCallback: (updatedDevice) {
                       getInfoUser();
                     },
+                    switchValue: widget.switchValue,
                   ),
                 ),
               );
@@ -228,89 +219,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _emailPasswordWidget() {
-    _emailController.text = user.user;
-    _passwordController.text = user.pass;
-    _nameController.text = user.tenDecode;
-    _phoneNumberController.text = user.sdt;
-    _addressController.text = user.nhaDecode;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(10),
-      child: Column(
-        children: <Widget>[
-          _entryField("Tên đăng nhập", _emailController, false),
-          _entryField("Mật khẩu", _passwordController, false, isPassword: true),
-          _entryField("Tên", _nameController, true),
-          _entryField("SĐT", _phoneNumberController, true),
-          _entryField("Địa chỉ", _addressController, true),
-          _entryField("Khoa", _departmentController, true),
-          _entryField("Quyền", _permissionController, true),
-          SizedBox(height: 10),
-          _button('Cập nhật'),
-          _button('Hủy')
-        ],
-      ),
-    );
-  }
-
-  Widget _entryField(
-      String title, TextEditingController _controller, bool isEnable,
-      {bool isPassword = false}) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            title,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          ),
-          SizedBox(
-            height: 10,
-          ),
-          TextFormField(
-              enabled: isEnable,
-              validator: (String value) {
-                if (value.isEmpty) {
-                  return 'Vui lòng nhập đủ thông tin!';
-                }
-                return null;
-              },
-              controller: _controller,
-              obscureText: isPassword,
-              decoration: InputDecoration(
-                  border: InputBorder.none,
-                  fillColor: Color(0xfff3f3f4),
-                  filled: true))
-        ],
-      ),
-    );
-  }
-
-  Widget _backButton() {
-    return InkWell(
-      onTap: () {
-        Navigator.pop(context);
-      },
-      child: Container(
-        // padding: EdgeInsets.symmetric(horizontal: 10),
-        child: Row(
-          children: <Widget>[
-            Container(
-              // padding: EdgeInsets.only(left: 0, top: 10, bottom: 10),
-              child: Icon(Icons.keyboard_arrow_left, color: Colors.black),
-            ),
-            // Text('Back',
-            //     style: TextStyle(
-            //         fontSize: 16,
-            //         fontWeight: FontWeight.w500,
-            //         color: Colors.white))
-          ],
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -357,7 +265,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           null),
                       _placeContainer(
                           user.nhaDecode != null
-                              ? 'Địa chỉ: ${user.nhaDecode}'
+                              ? 'Địa chỉ: ${user.nhaDecode.substring(0, 20)}...'
                               : 'Chưa nhập địa chỉ',
                           Color(0xff8f48ff),
                           null),
@@ -398,41 +306,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _button(String text) {
-    return InkWell(
-      onTap: () {
-        _tryEdit();
-        Navigator.of(context).pop(false);
-      },
-      child: Container(
-        width: MediaQuery.of(context).size.width,
-        padding: EdgeInsets.symmetric(vertical: 10),
-        margin: EdgeInsets.only(bottom: 10),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.all(Radius.circular(5)),
-            boxShadow: <BoxShadow>[
-              BoxShadow(
-                  color: Colors.grey.shade200,
-                  offset: Offset(2, 4),
-                  blurRadius: 5,
-                  spreadRadius: 2)
-            ],
-            gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  Colors.blueAccent,
-                  Colors.blue,
-                ])),
-        child: Text(
-          text,
-          style: TextStyle(fontSize: 20, color: Colors.white),
-        ),
-      ),
-    );
-  }
-
   handle(String message) async {
     DeviceResponse response = DeviceResponse.fromJson(jsonDecode(message));
 
@@ -465,6 +338,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     updateCallback: (updatedDevice) {
                       getInfoUser();
                     },
+                    switchValue: widget.switchValue,
                   ),
                 ),
               );
@@ -480,22 +354,6 @@ class _UserProfilePageState extends State<UserProfilePage> {
         break;
     }
     pubTopic = '';
-  }
-
-  Future<void> _tryEdit() async {
-    User user = User(
-      Constants.mac,
-      _emailController.text,
-      _passwordController.text,
-      _nameController.text,
-      _phoneNumberController.text,
-      _addressController.text,
-      _departmentController.text,
-      _permissionController.text,
-      '',
-    );
-    user.iduser = await sharedPrefsHelper.getStringValuesSF('iduser');
-    publishMessage('updateuser', jsonEncode(user));
   }
 
   void showLoadingDialog() {

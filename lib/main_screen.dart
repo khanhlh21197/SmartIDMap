@@ -79,6 +79,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   void initState() {
+    print('_MainScreenState.initState ${widget.quyen}');
     sharedPrefsHelper = SharedPrefsHelper();
     initBottomBarItems();
     initWidgetOptions();

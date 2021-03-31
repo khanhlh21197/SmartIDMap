@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/response/device_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
@@ -18,7 +19,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'helper/models.dart';
 import 'model/student.dart';
 import 'model/thietbi.dart';
-import 'package:smartid_map/helper/constants.dart' as Constants;
 
 class MapView extends StatefulWidget {
   @override
@@ -517,7 +517,8 @@ class _MapViewState extends State<MapView> {
             // showing the route
             // directContainer(width),
             // Show current location button
-            callButton(),
+            callDriverButton(),
+            callMonitorButton(),
             currentLocationButton(),
           ],
         ),
@@ -725,7 +726,7 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  Widget callButton() {
+  Widget callMonitorButton() {
     return SafeArea(
       child: Align(
         alignment: Alignment.bottomLeft,
@@ -750,7 +751,7 @@ class _MapViewState extends State<MapView> {
                         height: 5,
                       ),
                       Text(
-                        'SOS',
+                        'Giám sát',
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.white,
@@ -761,6 +762,51 @@ class _MapViewState extends State<MapView> {
                 ),
                 onTap: () {
                   launch("tel://$sdtgs");
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget callDriverButton() {
+    return SafeArea(
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 10.0, bottom: 100.0),
+          child: ClipOval(
+            child: Material(
+              color: Colors.green, // button color
+              child: InkWell(
+                splashColor: Colors.red, // inkwell color
+                child: SizedBox(
+                  width: 56,
+                  height: 56,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.call,
+                        color: Colors.white,
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        'Lái xe',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                onTap: () {
+                  launch("tel://$sdtlx");
                 },
               ),
             ),

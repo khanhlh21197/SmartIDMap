@@ -6,7 +6,6 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/response/device_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/login_page.dart';
 import 'package:smartid_map/main_screen.dart';
 import 'package:smartid_map/model/student.dart';
 import 'package:smartid_map/navigator.dart';
@@ -98,6 +97,10 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
           FocusScope.of(context).requestFocus(FocusNode());
         },
         child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.green),
+          ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -186,7 +189,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
         children: <Widget>[
           Expanded(
             child: Text(
-              "Chọn tuyến xe",
+              "Chọn học sinh",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ),
@@ -206,7 +209,8 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
                 setState(() {
                   busID = data;
                   print(busID);
-                  getPhoneNumber(busID);
+                  getPhoneNumber(
+                      students[dropDownStudents.indexOf(busID)].matx);
                 });
               },
               items: dropDownStudents
@@ -231,8 +235,8 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
         students = response.id.map((e) => Student.fromJson(e)).toList();
         dropDownStudents.clear();
         students.forEach((element) {
-          if (!dropDownStudents.contains(element.matx)) {
-            dropDownStudents.add(element.matx);
+          if (!dropDownStudents.contains(element.tenDecode)) {
+            dropDownStudents.add(element.tenDecode);
           }
         });
         setState(() {});
