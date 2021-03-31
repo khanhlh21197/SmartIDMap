@@ -86,6 +86,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Widget _placeContainer(String title, Color color, Widget icon) {
+    if (title.length > 20) {
+      title = title.substring(0, 20) + '...';
+    }
     return Column(
       children: <Widget>[
         Container(
@@ -265,7 +268,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           null),
                       _placeContainer(
                           user.nhaDecode != null
-                              ? 'Địa chỉ: ${user.nhaDecode.substring(0, 20)}...'
+                              ? 'Địa chỉ: ${user.nhaDecode}'
                               : 'Chưa nhập địa chỉ',
                           Color(0xff8f48ff),
                           null),
