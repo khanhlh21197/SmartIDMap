@@ -10,10 +10,13 @@ import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/response/mqtt_response.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/bus.dart';
+import 'package:smartid_map/model/class.dart';
 import 'package:smartid_map/model/driver.dart';
 import 'package:smartid_map/model/monitor.dart';
+import 'package:smartid_map/model/student.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/model/vehicle.dart';
+import 'package:smartid_map/response/device_response.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 
 class AddBusScreen extends StatefulWidget {
@@ -31,6 +34,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
   static const GET_VEHICLE = 'getXe';
   static const REGISTER_BUS = 'registerTuyenxe';
   static const GET_ID_ALL = 'getmaall';
+  static const GET_STUDENT = 'getHS';
 
   final String SUB_MONITOR = Constants.mac + 'monitor';
   final String SUB_DRIVER = Constants.mac + 'driver';
@@ -84,12 +88,30 @@ class _AddBusScreenState extends State<AddBusScreen> {
   var dropDownVehicles = ['   '];
   var vehicleId;
 
+  Map<String, List<String>> classMap;
+  var dropDownGrades = ['   '];
+  var dropDownClasses = ['   '];
+  var _grade;
+  var _class;
+  List<Student> students = List();
+
   var pubTopic = '';
 
   @override
   void initState() {
     initMqtt();
+    getClasses();
     super.initState();
+  }
+
+  void getClasses() async {
+    var classes = await DefaultAssetBundle.of(context)
+        .loadString('assets/json/class.json');
+    classMap = classFromJson(classes);
+    dropDownGrades.clear();
+    classMap.forEach((key, value) {
+      dropDownGrades.add(key);
+    });
   }
 
   void getDevices() async {
@@ -125,6 +147,13 @@ class _AddBusScreenState extends State<AddBusScreen> {
     pubTopic = GET_ID_ALL;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
+  }
+
+  void getStudents() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(t));
+    showLoadingDialog();
   }
 
   void _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
@@ -197,6 +226,8 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   TextInputType.text,
                   noteController,
                 ),
+                chooseClassContainer(),
+                students.length > 0 ? buildStudentList() : Container(),
                 // Text(
                 //   'Cài đặt thời gian theo dõi : ',
                 //   style: TextStyle(fontSize: 18),
@@ -256,6 +287,115 @@ class _AddBusScreenState extends State<AddBusScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildStudentList() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue),
+      ),
+      child: Column(
+        children: [
+          buildTableTitle(),
+          horizontalLine(),
+          buildListView(),
+          horizontalLine(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTableTitle() {
+    return Container(
+      color: Colors.yellow,
+      height: 40,
+      child: Row(
+        children: [
+          buildTextLabel('STT', 1),
+          verticalLine(),
+          buildTextLabel('Tên HS', 4),
+          verticalLine(),
+          buildTextLabel('Mã', 2),
+          verticalLine(),
+          buildTextLabel('Địa chỉ', 2),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTextLabel(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data ?? '',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget buildListView() {
+    return students.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: students.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
+  }
+
+  Widget itemView(int index) {
+    var checkboxValue = false;
+    return InkWell(
+      onTap: () async {
+        checkboxValue = !checkboxValue;
+        setState(() {});
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              child: Row(
+                children: [
+                  buildTextData('${index + 1}', 1),
+                  verticalLine(),
+                  buildTextData(students[index].tenDecode ?? '', 4),
+                  verticalLine(),
+                  buildTextData(students[index].mahs ?? '', 2),
+                  verticalLine(),
+                  buildTextData(students[index].nhaDecode ?? '', 2),
+                  verticalLine(),
+                  Checkbox(
+                      value: checkboxValue,
+                      onChanged: (_value) {
+                        checkboxValue = _value;
+                        setState(() {});
+                      }),
+                ],
+              ),
+            ),
+            horizontalLine(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextData(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data,
+        style: TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
     );
   }
 
@@ -743,6 +883,124 @@ class _AddBusScreenState extends State<AddBusScreen> {
     );
   }
 
+  Widget chooseClassContainer() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: _dropDownGrade(),
+          ),
+          Expanded(
+            child: _dropDownClass(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownGrade() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Khối",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _grade,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _grade = data;
+                  print(_grade);
+                  dropDownClasses.clear();
+                  dropDownClasses = classMap[_grade];
+                });
+              },
+              items:
+                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownClass() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lớp",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _class,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _class = data;
+                  print(_class);
+                  getStudents();
+                });
+              },
+              items:
+                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   Widget buildDescriptionContainer(String labelText, Icon prefixIcon,
       TextInputType keyboardType, TextEditingController controller) {
     return Container(
@@ -852,6 +1110,12 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Navigator.pop(context);
         }
         break;
+      case GET_STUDENT:
+        var response = DeviceResponse.fromJson(responseMap);
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        setState(() {});
+        hideLoadingDialog();
+        break;
       // case GET_DEVICE:
       //   devices = response.id.map((e) => ThietBi.fromJson(e)).toList();
       //   dropDownDevices.clear();
@@ -910,6 +1174,22 @@ class _AddBusScreenState extends State<AddBusScreen> {
         break;
     }
     pubTopic = '';
+  }
+
+  Widget verticalLine() {
+    return Container(
+      height: double.infinity,
+      width: 1,
+      color: Colors.grey,
+    );
+  }
+
+  Widget horizontalLine() {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      color: Colors.grey,
+    );
   }
 
   Future<void> publishMessage(String topic, String message) async {
