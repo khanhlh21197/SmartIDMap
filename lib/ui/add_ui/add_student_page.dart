@@ -10,6 +10,7 @@ import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
+import 'package:smartid_map/model/class.dart';
 import 'package:smartid_map/model/student.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/secrets.dart';
@@ -34,6 +35,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   static const REGISTER_STUDENT = 'registerHS';
   static const GET_PARENT = 'getph';
   static const GET_STUDENT = 'getHS';
+  static const GET_CLASS = 'getlop';
+  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
 
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
@@ -67,15 +70,30 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   var dropDownStudents = ['   '];
   var studentID;
 
+  List<Class> classes = List();
+
+  var dropDownGrades = ['   '];
+  var dropDownClasses = ['   '];
+  var _grade;
+  var _class;
+
   @override
   void initState() {
     initMqtt();
+    getGrades();
     if (widget.isParent) {
       getStudentId();
     } else {
       getParent();
     }
     super.initState();
+  }
+
+  void getGrades() async {
+    var grades = await DefaultAssetBundle.of(context)
+        .loadString('assets/json/grade.json');
+    dropDownGrades = gradeFromJson(grades);
+    setState(() {});
   }
 
   @override
@@ -127,7 +145,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                         TextInputType.visiblePassword,
                         studentIdController,
                       ),
-                widget.isParent ? Container() : _dropDownParent(),
+                chooseClassContainer(),
                 // idDeviceContainer(
                 //   'Mã phụ huynh',
                 //   Icon(Icons.vpn_key),
@@ -293,6 +311,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                     phoneNumberController.text,
                     utf8.encode(addressController.text).toString(),
                     parentID,
+                    _class,
+                    _grade,
                     Constants.mac);
                 // ThietBi tb = ThietBi(
                 //   idController.text,
@@ -478,6 +498,129 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     );
   }
 
+  Widget chooseClassContainer() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: _dropDownGrade(),
+          ),
+          Expanded(
+            child: _dropDownClass(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownGrade() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Khối",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _grade,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _grade = data;
+                  print(_grade);
+                  getClasses(_grade);
+                });
+              },
+              items:
+                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void getClasses(String grade) {
+    Class c = Class(grade, '', Constants.mac);
+    pubTopic = GET_CLASS_BY_GRADE;
+    publishMessage(pubTopic, jsonEncode(c));
+  }
+
+  Widget _dropDownClass() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lớp",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _class,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _class = data;
+                  print(_class);
+                  getStudentId();
+                });
+              },
+              items:
+                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void showLoadingDialog() {
     Dialogs.showLoadingDialog(context, _keyLoader);
   }
@@ -498,6 +641,16 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     print('_AddStudentScreenState.handle ${buses.length}');
 
     switch (pubTopic) {
+      case GET_CLASS:
+      case GET_CLASS_BY_GRADE:
+        print('_AddBusScreenState.handle $responseMap');
+        classes = response.id.map((e) => Class.fromJson(e)).toList();
+        dropDownClasses.clear();
+        classes.forEach((element) {
+          dropDownClasses.add(element.lop);
+        });
+        setState(() {});
+        break;
       case GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         busIds.clear();

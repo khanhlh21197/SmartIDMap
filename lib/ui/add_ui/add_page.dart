@@ -9,6 +9,7 @@ import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/signup.dart';
 import 'package:smartid_map/ui/add_ui/add_bus_page.dart';
+import 'package:smartid_map/ui/add_ui/add_class_page.dart';
 import 'package:smartid_map/ui/add_ui/add_device_page.dart';
 import 'package:smartid_map/ui/add_ui/add_driver_page.dart';
 import 'package:smartid_map/ui/add_ui/add_monitor_page.dart';
@@ -81,6 +82,8 @@ class _AddScreenState extends State<AddScreen> {
             buildButton('Phụ huynh', Icons.add, 7),
             horizontalLine(),
             buildButton('HS - TX - PH', Icons.add, 6),
+            horizontalLine(),
+            buildButton('Lớp', Icons.class_, 8),
           ],
         ),
       ),
@@ -127,6 +130,9 @@ class _AddScreenState extends State<AddScreen> {
                   title: 'Đăng ký phụ huynh',
                   isAdmin: false,
                 ));
+            break;
+          case 8:
+            navigatorPush(context, AddClassScreen());
             break;
         }
       },

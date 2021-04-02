@@ -9,7 +9,11 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
+import 'package:smartid_map/helper/response/device_response.dart';
 import 'package:smartid_map/login_page.dart';
+import 'package:smartid_map/model/class.dart';
+import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/secrets.dart';
 import 'package:smartid_map/ui/add_ui/map_view_student.dart';
@@ -25,6 +29,13 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  final GlobalKey<State> _keyLoader = new GlobalKey<State>();
+  static const GET_STUDENT = 'getHS';
+  static const REGISTER_USER = 'registeruser';
+  static const REGISTER_PARENT = 'registerph';
+  static const GET_CLASS = 'getlop';
+  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
+
   MQTTClientWrapper mqttClientWrapper;
   User registerUser;
   String permissionValue = '2';
@@ -43,10 +54,27 @@ class _SignUpPageState extends State<SignUpPage> {
   double lat;
   double long;
 
+  var dropDownGrades = ['   '];
+  var dropDownClasses = ['   '];
+  var _grade;
+  var _class;
+  List<Student> students = List();
+  List<Class> classes = List();
+
+  var pubTopic = '';
+
   @override
   void initState() {
     initMqtt();
+    getGrades();
     super.initState();
+  }
+
+  void getGrades() async {
+    var grades = await DefaultAssetBundle.of(context)
+        .loadString('assets/json/grade.json');
+    dropDownGrades = gradeFromJson(grades);
+    setState(() {});
   }
 
   Future<void> initMqtt() async {
@@ -82,6 +110,130 @@ class _SignUpPageState extends State<SignUpPage> {
                   border: InputBorder.none,
                   fillColor: Color(0xfff3f3f4),
                   filled: true))
+        ],
+      ),
+    );
+  }
+
+  Widget chooseClassContainer() {
+    return Container(
+      child: Row(
+        children: [
+          Expanded(
+            child: _dropDownGrade(),
+          ),
+          Expanded(
+            child: _dropDownClass(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownGrade() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Khối",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _grade,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _grade = data;
+                  print(_grade);
+                  getClasses(_grade);
+                });
+              },
+              items:
+                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void getClasses(String grade) {
+    Class c = Class(grade, '', Constants.mac);
+    pubTopic = GET_CLASS_BY_GRADE;
+    publishMessage(pubTopic, jsonEncode(c));
+    showLoadingDialog();
+  }
+
+  Widget _dropDownClass() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lớp",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _class,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _class = data;
+                  print(_class);
+                  getStudents();
+                });
+              },
+              items:
+                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
         ],
       ),
     );
@@ -373,6 +525,8 @@ class _SignUpPageState extends State<SignUpPage> {
                       SizedBox(
                         height: 20,
                       ),
+                      chooseClassContainer(),
+                      students.length > 0 ? buildStudentList() : Container(),
                       _submitButton(),
                       // SizedBox(height: height * .14),
                       // _loginAccountLabel(),
@@ -385,6 +539,161 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  Widget buildStudentList() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue),
+      ),
+      child: Column(
+        children: [
+          buildTableTitle(),
+          horizontalLine(),
+          buildListView(),
+          horizontalLine(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTableTitle() {
+    return Container(
+      color: Colors.yellow,
+      height: 40,
+      child: Row(
+        children: [
+          buildTextLabel('STT', 1),
+          verticalLine(),
+          buildTextLabel('Tên HS', 4),
+          verticalLine(),
+          buildTextLabel('Mã', 2),
+          verticalLine(),
+          buildTextLabel('Địa chỉ', 2),
+        ],
+      ),
+    );
+  }
+
+  Widget buildTextLabel(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data ?? '',
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget buildListView() {
+    return students.length != 0
+        ? ListView.builder(
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: students.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
+        : Center(child: Text('Không có thông tin'));
+  }
+
+  Widget itemView(int index) {
+    return InkWell(
+      onTap: () async {},
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 1),
+        child: Column(
+          children: [
+            Container(
+              height: 40,
+              child: Row(
+                children: [
+                  buildTextData('${index + 1}', 1),
+                  verticalLine(),
+                  buildTextData(students[index].tenDecode ?? '', 4),
+                  verticalLine(),
+                  buildTextData(students[index].mahs ?? '', 2),
+                  verticalLine(),
+                  buildTextData(students[index].nhaDecode ?? '', 2),
+                  verticalLine(),
+                  Checkbox(
+                      value: students[index].isSelected,
+                      onChanged: (_value) {
+                        students[index].isSelected =
+                            !students[index].isSelected;
+                        setState(() {});
+                      }),
+                ],
+              ),
+            ),
+            horizontalLine(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget buildTextData(String data, int flexValue) {
+    return Expanded(
+      child: Text(
+        data,
+        style: TextStyle(fontSize: 14),
+        textAlign: TextAlign.center,
+      ),
+      flex: flexValue,
+    );
+  }
+
+  Widget wrapText(String text) {
+    double cWidth = MediaQuery.of(context).size.width * 1;
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      width: cWidth,
+      child: Column(
+        children: <Widget>[
+          Text(
+            text,
+            textAlign: TextAlign.left,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget verticalLine() {
+    return Container(
+      height: double.infinity,
+      width: 1,
+      color: Colors.grey,
+    );
+  }
+
+  Widget horizontalLine() {
+    return Container(
+      height: 1,
+      width: double.infinity,
+      color: Colors.grey,
+    );
+  }
+
+  void getStudents() async {
+    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    pubTopic = GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(t));
+    showLoadingDialog();
+  }
+
+  void showLoadingDialog() {
+    Dialogs.showLoadingDialog(context, _keyLoader);
+  }
+
+  void hideLoadingDialog() {
+    Navigator.of(_keyLoader.currentContext, rootNavigator: true).pop();
   }
 
   void _tryRegister() async {
@@ -401,25 +710,63 @@ class _SignUpPageState extends State<SignUpPage> {
     );
     registerUser.maph = registerUser.user;
     if (widget.isAdmin) {
-      publishMessage('registeruser', jsonEncode(registerUser));
+      pubTopic = REGISTER_USER;
     } else {
-      publishMessage('registerph', jsonEncode(registerUser));
+      List<String> mahs = List();
+      students.forEach((element) {
+        if (element.isSelected) {
+          mahs.add(element.mahs);
+        }
+      });
+      registerUser.mahs = mahs;
+      pubTopic = REGISTER_PARENT;
     }
+    publishMessage(pubTopic, jsonEncode(registerUser));
   }
 
   register(String message) {
     Map responseMap = jsonDecode(message);
 
-    if (responseMap['result'] == 'true') {
-      print('Signup success');
-      Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => LoginPage(
-                    registerUser: registerUser,
-                  )));
-    } else {
-      _showToast(context);
+    switch (pubTopic) {
+      case REGISTER_PARENT:
+        if (responseMap['result'] == 'true') {
+          print('Signup success');
+          Navigator.of(context).pop();
+        } else {
+          _showToast(context);
+        }
+        break;
+      case REGISTER_USER:
+        if (responseMap['result'] == 'true') {
+          print('Signup success');
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => LoginPage(
+                        registerUser: registerUser,
+                      )));
+        } else {
+          _showToast(context);
+        }
+        break;
+      case GET_STUDENT:
+        var response = DeviceResponse.fromJson(responseMap);
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        setState(() {});
+        hideLoadingDialog();
+        break;
+      case GET_CLASS:
+      case GET_CLASS_BY_GRADE:
+        var response = DeviceResponse.fromJson(responseMap);
+        print('_AddBusScreenState.handle $responseMap');
+        classes = response.id.map((e) => Class.fromJson(e)).toList();
+        dropDownClasses.clear();
+        classes.forEach((element) {
+          dropDownClasses.add(element.lop);
+        });
+        setState(() {});
+        hideLoadingDialog();
+        break;
     }
   }
 

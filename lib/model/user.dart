@@ -29,6 +29,7 @@ class User {
   String trangthai;
   String passmoi;
   String maph;
+  List<String> mahs;
 
   User(this.mac, this.user, this.pass, this.ten, this.sdt, this.nha, this.khoa,
       this.quyen, this.playerid,
@@ -50,6 +51,7 @@ class User {
         playerid = json['playerid'],
         thongbao = json['thongbao'],
         trangthai = json['trangthai'],
+        mahs = json['mahs'],
         maph = json['maph'];
 
   Map<String, dynamic> toJson() => {
@@ -68,6 +70,7 @@ class User {
         'trangthai': trangthai,
         'passmoi': passmoi,
         'maph': maph,
+        'mahs': mahs,
       };
 
   String get tenDecode {

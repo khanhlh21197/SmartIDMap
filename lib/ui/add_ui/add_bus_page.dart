@@ -35,6 +35,8 @@ class _AddBusScreenState extends State<AddBusScreen> {
   static const REGISTER_BUS = 'registerTuyenxe';
   static const GET_ID_ALL = 'getmaall';
   static const GET_STUDENT = 'getHS';
+  static const GET_CLASS = 'getlop';
+  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
 
   final String SUB_MONITOR = Constants.mac + 'monitor';
   final String SUB_DRIVER = Constants.mac + 'driver';
@@ -88,30 +90,28 @@ class _AddBusScreenState extends State<AddBusScreen> {
   var dropDownVehicles = ['   '];
   var vehicleId;
 
-  Map<String, List<String>> classMap;
   var dropDownGrades = ['   '];
   var dropDownClasses = ['   '];
   var _grade;
   var _class;
   List<Student> students = List();
+  List<Class> classes = List();
+  List<String> mahs = List();
 
   var pubTopic = '';
 
   @override
   void initState() {
     initMqtt();
-    getClasses();
+    getGrades();
     super.initState();
   }
 
-  void getClasses() async {
-    var classes = await DefaultAssetBundle.of(context)
-        .loadString('assets/json/class.json');
-    classMap = classFromJson(classes);
-    dropDownGrades.clear();
-    classMap.forEach((key, value) {
-      dropDownGrades.add(key);
-    });
+  void getGrades() async {
+    var grades = await DefaultAssetBundle.of(context)
+        .loadString('assets/json/grade.json');
+    dropDownGrades = gradeFromJson(grades);
+    setState(() {});
   }
 
   void getDevices() async {
@@ -475,6 +475,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$morningStartTime:$morningEndTime',
+                    mahs,
                     Constants.mac,
                   );
                   publishMessage(TX_HDS, jsonEncode(b));
@@ -502,6 +503,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$morningStartTime:$morningEndTime',
+                    mahs,
                     Constants.mac,
                   );
                   publishMessage(TX_HDS, jsonEncode(b));
@@ -543,6 +545,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$afternoonStartTime:$afternoonEndTime',
+                    mahs,
                     Constants.mac,
                   );
                   publishMessage(TX_HDC, jsonEncode(b));
@@ -570,6 +573,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$afternoonStartTime:$afternoonEndTime',
+                    mahs,
                     Constants.mac,
                   );
                   publishMessage(TX_HDC, jsonEncode(b));
@@ -932,8 +936,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                 setState(() {
                   _grade = data;
                   print(_grade);
-                  dropDownClasses.clear();
-                  dropDownClasses = classMap[_grade];
+                  getClasses(_grade);
                 });
               },
               items:
@@ -948,6 +951,12 @@ class _AddBusScreenState extends State<AddBusScreen> {
         ],
       ),
     );
+  }
+
+  void getClasses(String grade) {
+    Class c = Class(grade, '', Constants.mac);
+    pubTopic = GET_CLASS_BY_GRADE;
+    publishMessage(pubTopic, jsonEncode(c));
   }
 
   Widget _dropDownClass() {
@@ -1066,6 +1075,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   '$afternoonStartTime:$afternoonEndTime',
                   stringDates.toString(),
                   '',
+                  mahs,
                   Constants.mac,
                 );
                 pubTopic = REGISTER_BUS;
@@ -1113,6 +1123,18 @@ class _AddBusScreenState extends State<AddBusScreen> {
       case GET_STUDENT:
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
+        setState(() {});
+        hideLoadingDialog();
+        break;
+      case GET_CLASS:
+      case GET_CLASS_BY_GRADE:
+        var response = DeviceResponse.fromJson(responseMap);
+        print('_AddBusScreenState.handle $responseMap');
+        classes = response.id.map((e) => Class.fromJson(e)).toList();
+        dropDownClasses.clear();
+        classes.forEach((element) {
+          dropDownClasses.add(element.lop);
+        });
         setState(() {});
         hideLoadingDialog();
         break;

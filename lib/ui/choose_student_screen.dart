@@ -47,7 +47,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
 
   void getStudents() async {
     String maph = await sharedPrefsHelper.getStringValuesSF('email');
-    Student t = Student('', '', '', '', maph, Constants.mac);
+    Student t = Student('', '', '', '', maph, '', '', Constants.mac);
     pubTopic = GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
@@ -167,7 +167,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
   }
 
   void getPhoneNumber(String matx) {
-    Student t = Student('', '', '', '', '', Constants.mac);
+    Student t = Student('', '', '', '', '', '', '', Constants.mac);
     t.matx = matx;
     pubTopic = GET_PHONE;
     publishMessage(pubTopic, jsonEncode(t));

@@ -224,8 +224,8 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 new FlatButton(
                   onPressed: () {
                     pubTopic = DELETE_STUDENT;
-                    var s = Student(
-                        widget.student.mahs, '', '', '', '', Constants.mac);
+                    var s = Student(widget.student.mahs, '', '', '', '', '', '',
+                        Constants.mac);
                     publishMessage(pubTopic, jsonEncode(s));
                   },
                   child: new Text(
@@ -349,6 +349,8 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
         phoneNumberController.text,
         utf8.encode(addressController.text).toString(),
         parentID,
+        '',
+        '',
         Constants.mac);
     pubTopic = UPDATE_STUDENT;
     publishMessage(pubTopic, jsonEncode(updatedStudent));
