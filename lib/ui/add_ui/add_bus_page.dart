@@ -1063,6 +1063,12 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
+                mahs = List();
+                students.forEach((element) {
+                  if (element.isSelected) {
+                    mahs.add(element.mahs);
+                  }
+                });
                 Bus b = Bus(
                   busIdController.text,
                   utf8.encode(busNameController.text).toString(),
@@ -1123,6 +1129,11 @@ class _AddBusScreenState extends State<AddBusScreen> {
       case GET_STUDENT:
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
+        students.forEach((element) {
+          if (mahs.contains(element.mahs)) {
+            element.isSelected = true;
+          }
+        });
         setState(() {});
         hideLoadingDialog();
         break;

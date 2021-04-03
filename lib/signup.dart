@@ -60,6 +60,7 @@ class _SignUpPageState extends State<SignUpPage> {
   var _class;
   List<Student> students = List();
   List<Class> classes = List();
+  List<String> mahs = List();
 
   var pubTopic = '';
 
@@ -79,7 +80,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> initMqtt() async {
     mqttClientWrapper = MQTTClientWrapper(
-        () => print('Success'), (message) => register(message));
+            () => print('Success'), (message) => register(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
   }
 
@@ -168,7 +169,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 });
               },
               items:
-                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+              dropDownGrades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value ?? ''),
@@ -226,7 +227,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 });
               },
               items:
-                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+              dropDownClasses.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value ?? ''),
@@ -245,7 +246,10 @@ class _SignUpPageState extends State<SignUpPage> {
         _tryRegister();
       },
       child: Container(
-        width: MediaQuery.of(context).size.width,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width,
         padding: EdgeInsets.symmetric(vertical: 15),
         margin: EdgeInsets.only(bottom: 20),
         alignment: Alignment.center,
@@ -309,7 +313,10 @@ class _SignUpPageState extends State<SignUpPage> {
       text: TextSpan(
           text: 'H',
           style: GoogleFonts.portLligatSans(
-            textStyle: Theme.of(context).textTheme.display1,
+            textStyle: Theme
+                .of(context)
+                .textTheme
+                .display1,
             fontSize: 30,
             fontWeight: FontWeight.w700,
             color: Colors.lightBlueAccent,
@@ -439,7 +446,8 @@ class _SignUpPageState extends State<SignUpPage> {
               apiKey: Secrets.API_KEY,
               onError: (value) {
                 print(
-                    '_AddStudentScreenState.searchAddress ${value.errorMessage}');
+                    '_AddStudentScreenState.searchAddress ${value
+                        .errorMessage}');
               });
           displayPrediction(p);
         },
@@ -471,7 +479,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<Null> displayPrediction(Prediction p) async {
     if (p != null) {
       PlacesDetailsResponse detail =
-          await _places.getDetailsByPlaceId(p.placeId);
+      await _places.getDetailsByPlaceId(p.placeId);
 
       var placeId = p.placeId;
       lat = detail.result.geometry.location.lat;
@@ -490,7 +498,10 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+    final height = MediaQuery
+        .of(context)
+        .size
+        .height;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title ?? 'Đăng ký'),
@@ -590,13 +601,13 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget buildListView() {
     return students.length != 0
         ? ListView.builder(
-            scrollDirection: Axis.vertical,
-            shrinkWrap: true,
-            itemCount: students.length,
-            itemBuilder: (context, index) {
-              return itemView(index);
-            },
-          )
+      scrollDirection: Axis.vertical,
+      shrinkWrap: true,
+      itemCount: students.length,
+      itemBuilder: (context, index) {
+        return itemView(index);
+      },
+    )
         : Center(child: Text('Không có thông tin'));
   }
 
@@ -623,7 +634,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       value: students[index].isSelected,
                       onChanged: (_value) {
                         students[index].isSelected =
-                            !students[index].isSelected;
+                        !students[index].isSelected;
                         setState(() {});
                       }),
                 ],
@@ -648,7 +659,10 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget wrapText(String text) {
-    double cWidth = MediaQuery.of(context).size.width * 1;
+    double cWidth = MediaQuery
+        .of(context)
+        .size
+        .width * 1;
     return Container(
       padding: const EdgeInsets.all(16.0),
       width: cWidth,
@@ -712,7 +726,7 @@ class _SignUpPageState extends State<SignUpPage> {
     if (widget.isAdmin) {
       pubTopic = REGISTER_USER;
     } else {
-      List<String> mahs = List();
+      mahs = List();
       students.forEach((element) {
         if (element.isSelected) {
           mahs.add(element.mahs);
@@ -742,7 +756,8 @@ class _SignUpPageState extends State<SignUpPage> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => LoginPage(
+                  builder: (context) =>
+                      LoginPage(
                         registerUser: registerUser,
                       )));
         } else {
@@ -752,6 +767,11 @@ class _SignUpPageState extends State<SignUpPage> {
       case GET_STUDENT:
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
+        students.forEach((element) {
+          if (mahs.contains(element.mahs)){
+            element.isSelected = true;
+          }
+        });
         setState(() {});
         hideLoadingDialog();
         break;
