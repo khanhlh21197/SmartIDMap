@@ -67,7 +67,9 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     initMqtt();
-    getGrades();
+    if (!widget.isAdmin) {
+      getGrades();
+    }
     super.initState();
   }
 
@@ -80,7 +82,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> initMqtt() async {
     mqttClientWrapper = MQTTClientWrapper(
-            () => print('Success'), (message) => register(message));
+        () => print('Success'), (message) => register(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
   }
 
@@ -118,6 +120,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget chooseClassContainer() {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      height: 44,
       child: Row(
         children: [
           Expanded(
@@ -133,9 +137,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _dropDownGrade() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-      height: 44,
+      margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.green),
         borderRadius: BorderRadius.circular(5),
@@ -169,7 +171,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 });
               },
               items:
-              dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value ?? ''),
@@ -191,9 +193,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Widget _dropDownClass() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-      height: 44,
+      margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.green),
         borderRadius: BorderRadius.circular(5),
@@ -227,7 +227,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 });
               },
               items:
-              dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
                   child: Text(value ?? ''),
@@ -246,10 +246,7 @@ class _SignUpPageState extends State<SignUpPage> {
         _tryRegister();
       },
       child: Container(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width,
+        width: MediaQuery.of(context).size.width,
         padding: EdgeInsets.symmetric(vertical: 15),
         margin: EdgeInsets.only(bottom: 20),
         alignment: Alignment.center,
@@ -313,10 +310,7 @@ class _SignUpPageState extends State<SignUpPage> {
       text: TextSpan(
           text: 'H',
           style: GoogleFonts.portLligatSans(
-            textStyle: Theme
-                .of(context)
-                .textTheme
-                .display1,
+            textStyle: Theme.of(context).textTheme.display1,
             fontSize: 30,
             fontWeight: FontWeight.w700,
             color: Colors.lightBlueAccent,
@@ -388,11 +382,11 @@ class _SignUpPageState extends State<SignUpPage> {
         buildTextField("SĐT", Icon(Icons.phone_android), TextInputType.text,
             _phoneNumberController),
         addressContainer(),
-        Container(
-          width: double.infinity,
-          height: 300,
-          child: MapViewStudent(lat: lat, lon: long),
-        ),
+        // Container(
+        //   width: double.infinity,
+        //   height: 300,
+        //   child: MapViewStudent(lat: lat, lon: long),
+        // ),
         _dropDownPermission(),
         // _dropDownDepartment(),
       ],
@@ -446,8 +440,7 @@ class _SignUpPageState extends State<SignUpPage> {
               apiKey: Secrets.API_KEY,
               onError: (value) {
                 print(
-                    '_AddStudentScreenState.searchAddress ${value
-                        .errorMessage}');
+                    '_AddStudentScreenState.searchAddress ${value.errorMessage}');
               });
           displayPrediction(p);
         },
@@ -479,7 +472,7 @@ class _SignUpPageState extends State<SignUpPage> {
   Future<Null> displayPrediction(Prediction p) async {
     if (p != null) {
       PlacesDetailsResponse detail =
-      await _places.getDetailsByPlaceId(p.placeId);
+          await _places.getDetailsByPlaceId(p.placeId);
 
       var placeId = p.placeId;
       lat = detail.result.geometry.location.lat;
@@ -498,10 +491,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery
-        .of(context)
-        .size
-        .height;
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title ?? 'Đăng ký'),
@@ -536,7 +526,14 @@ class _SignUpPageState extends State<SignUpPage> {
                       SizedBox(
                         height: 20,
                       ),
-                      chooseClassContainer(),
+                      widget.isAdmin
+                          ? Container()
+                          : Text(
+                              'Chọn học sinh',
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                      widget.isAdmin ? Container() : chooseClassContainer(),
                       students.length > 0 ? buildStudentList() : Container(),
                       _submitButton(),
                       // SizedBox(height: height * .14),
@@ -582,6 +579,8 @@ class _SignUpPageState extends State<SignUpPage> {
           buildTextLabel('Mã', 2),
           verticalLine(),
           buildTextLabel('Địa chỉ', 2),
+          verticalLine(),
+          buildTextLabel('Chọn', 1),
         ],
       ),
     );
@@ -601,13 +600,13 @@ class _SignUpPageState extends State<SignUpPage> {
   Widget buildListView() {
     return students.length != 0
         ? ListView.builder(
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      itemCount: students.length,
-      itemBuilder: (context, index) {
-        return itemView(index);
-      },
-    )
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: students.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
         : Center(child: Text('Không có thông tin'));
   }
 
@@ -630,13 +629,24 @@ class _SignUpPageState extends State<SignUpPage> {
                   verticalLine(),
                   buildTextData(students[index].nhaDecode ?? '', 2),
                   verticalLine(),
-                  Checkbox(
-                      value: students[index].isSelected,
-                      onChanged: (_value) {
-                        students[index].isSelected =
-                        !students[index].isSelected;
-                        setState(() {});
-                      }),
+                  Expanded(
+                    flex: 1,
+                    child: Checkbox(
+                        value: students[index].isSelected,
+                        onChanged: (_value) {
+                          students[index].isSelected =
+                              !students[index].isSelected;
+                          if (students[index].isSelected) {
+                            mahs.add(students[index].mahs);
+                          }
+                          if (!students[index].isSelected) {
+                            if (mahs.contains(students[index].mahs)) {
+                              mahs.remove(students[index].mahs);
+                            }
+                          }
+                          setState(() {});
+                        }),
+                  ),
                 ],
               ),
             ),
@@ -659,10 +669,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget wrapText(String text) {
-    double cWidth = MediaQuery
-        .of(context)
-        .size
-        .width * 1;
+    double cWidth = MediaQuery.of(context).size.width * 1;
     return Container(
       padding: const EdgeInsets.all(16.0),
       width: cWidth,
@@ -696,9 +703,9 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   void getStudents() async {
-    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
     pubTopic = GET_STUDENT;
-    publishMessage(pubTopic, jsonEncode(t));
+    publishMessage(pubTopic, jsonEncode(s));
     showLoadingDialog();
   }
 
@@ -726,12 +733,6 @@ class _SignUpPageState extends State<SignUpPage> {
     if (widget.isAdmin) {
       pubTopic = REGISTER_USER;
     } else {
-      mahs = List();
-      students.forEach((element) {
-        if (element.isSelected) {
-          mahs.add(element.mahs);
-        }
-      });
       registerUser.mahs = mahs;
       pubTopic = REGISTER_PARENT;
     }
@@ -756,8 +757,7 @@ class _SignUpPageState extends State<SignUpPage> {
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      LoginPage(
+                  builder: (context) => LoginPage(
                         registerUser: registerUser,
                       )));
         } else {
@@ -768,7 +768,7 @@ class _SignUpPageState extends State<SignUpPage> {
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
         students.forEach((element) {
-          if (mahs.contains(element.mahs)){
+          if (mahs.contains(element.mahs)) {
             element.isSelected = true;
           }
         });
@@ -780,6 +780,7 @@ class _SignUpPageState extends State<SignUpPage> {
         var response = DeviceResponse.fromJson(responseMap);
         print('_AddBusScreenState.handle $responseMap');
         classes = response.id.map((e) => Class.fromJson(e)).toList();
+        _class = classes[0].lop;
         dropDownClasses.clear();
         classes.forEach((element) {
           dropDownClasses.add(element.lop);

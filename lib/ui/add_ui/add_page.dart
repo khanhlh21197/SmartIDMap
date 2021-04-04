@@ -81,7 +81,7 @@ class _AddScreenState extends State<AddScreen> {
             horizontalLine(),
             buildButton('Phụ huynh', Icons.add, 7),
             horizontalLine(),
-            buildButton('HS - TX - PH', Icons.add, 6),
+            buildButton('HS - TX', Icons.add, 6),
             horizontalLine(),
             buildButton('Lớp', Icons.class_, 8),
           ],

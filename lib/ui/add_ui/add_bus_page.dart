@@ -102,7 +102,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   @override
   void initState() {
-    initMqtt();
+    initMqtt().then((value) => getIdAll());
     getGrades();
     super.initState();
   }
@@ -150,9 +150,9 @@ class _AddBusScreenState extends State<AddBusScreen> {
   }
 
   void getStudents() async {
-    ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
+    Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
     pubTopic = GET_STUDENT;
-    publishMessage(pubTopic, jsonEncode(t));
+    publishMessage(pubTopic, jsonEncode(s));
     showLoadingDialog();
   }
 
@@ -213,7 +213,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                 idDeviceContainer(
                   'Tên tuyến xe',
                   Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
+                  TextInputType.text,
                   busNameController,
                 ),
                 _dropDownDevice(),
@@ -225,6 +225,10 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   Icon(Icons.email),
                   TextInputType.text,
                   noteController,
+                ),
+                Text(
+                  'Chọn học sinh',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 chooseClassContainer(),
                 students.length > 0 ? buildStudentList() : Container(),
@@ -320,6 +324,8 @@ class _AddBusScreenState extends State<AddBusScreen> {
           buildTextLabel('Mã', 2),
           verticalLine(),
           buildTextLabel('Địa chỉ', 2),
+          verticalLine(),
+          buildTextLabel('Chọn', 1),
         ],
       ),
     );
@@ -350,12 +356,8 @@ class _AddBusScreenState extends State<AddBusScreen> {
   }
 
   Widget itemView(int index) {
-    var checkboxValue = false;
     return InkWell(
-      onTap: () async {
-        checkboxValue = !checkboxValue;
-        setState(() {});
-      },
+      onTap: () async {},
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 1),
         child: Column(
@@ -372,12 +374,24 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   verticalLine(),
                   buildTextData(students[index].nhaDecode ?? '', 2),
                   verticalLine(),
-                  Checkbox(
-                      value: checkboxValue,
-                      onChanged: (_value) {
-                        checkboxValue = _value;
-                        setState(() {});
-                      }),
+                  Expanded(
+                    flex: 1,
+                    child: Checkbox(
+                        value: students[index].isSelected,
+                        onChanged: (_value) {
+                          students[index].isSelected =
+                              !students[index].isSelected;
+                          if (students[index].isSelected) {
+                            mahs.add(students[index].mahs);
+                          }
+                          if (!students[index].isSelected) {
+                            if (mahs.contains(students[index].mahs)) {
+                              mahs.remove(students[index].mahs);
+                            }
+                          }
+                          setState(() {});
+                        }),
+                  ),
                 ],
               ),
             ),
@@ -889,6 +903,9 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   Widget chooseClassContainer() {
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
       child: Row(
         children: [
           Expanded(
@@ -904,9 +921,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   Widget _dropDownGrade() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-      height: 44,
+      margin: const EdgeInsets.only(right: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.green),
         borderRadius: BorderRadius.circular(5),
@@ -961,9 +976,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   Widget _dropDownClass() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
-      height: 44,
+      margin: const EdgeInsets.only(left: 8),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.green),
         borderRadius: BorderRadius.circular(5),
@@ -1063,12 +1076,6 @@ class _AddBusScreenState extends State<AddBusScreen> {
           Expanded(
             child: RaisedButton(
               onPressed: () {
-                mahs = List();
-                students.forEach((element) {
-                  if (element.isSelected) {
-                    mahs.add(element.mahs);
-                  }
-                });
                 Bus b = Bus(
                   busIdController.text,
                   utf8.encode(busNameController.text).toString(),
@@ -1113,7 +1120,6 @@ class _AddBusScreenState extends State<AddBusScreen> {
     // Future.delayed(Duration(milliseconds: 300), getDrivers);
     // Future.delayed(Duration(milliseconds: 600), getMonitors);
     // Future.delayed(Duration(milliseconds: 900), getVehicles);
-    getIdAll();
   }
 
   void handle(String message) {
@@ -1143,6 +1149,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
         print('_AddBusScreenState.handle $responseMap');
         classes = response.id.map((e) => Class.fromJson(e)).toList();
         dropDownClasses.clear();
+        _class = classes[0].lop;
         classes.forEach((element) {
           dropDownClasses.add(element.lop);
         });

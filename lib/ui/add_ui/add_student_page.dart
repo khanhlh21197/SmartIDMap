@@ -153,11 +153,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 //   parentIdController,
                 // ),
                 addressContainer(),
-                Container(
-                  width: double.infinity,
-                  height: 300,
-                  child: MapViewStudent(lat: lat, lon: long),
-                ),
+                // Container(
+                //   width: double.infinity,
+                //   height: 300,
+                //   child: MapViewStudent(lat: lat, lon: long),
+                // ),
                 // buildTextField(
                 //   'Khu vực',
                 //   Icon(Icons.vpn_key),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/model/class.dart';
 import 'package:smartid_map/model/user.dart';
 
 import '../../helper/models.dart';
@@ -19,10 +20,13 @@ class StudentBusScreen extends StatefulWidget {
 
 class _StudentBusScreenState extends State<StudentBusScreen> {
   static const GET_STUDENT = 'getHSkmatx';
+  static const GET_ALL_STUDENT = 'getHS';
   static const GET_BUS = 'getTuyenxe';
   static const REGISTER_HS_TX = 'registerHSTX';
   static const GET_HS_TX = 'getHSTX';
   static const GET_PARENT = 'getph';
+  static const GET_CLASS = 'getlop';
+  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
 
   MQTTClientWrapper mqttClientWrapper;
 
@@ -39,21 +43,37 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   var parentID;
 
   List<HSTX> hstxs = List();
+  List<String> mahs = List();
 
   String pubTopic;
   bool isLoading = true;
 
+  List<Class> classes = List();
+
+  var dropDownGrades = ['   '];
+  var dropDownClasses = ['   '];
+  var _grade;
+  var _class;
+
   @override
   void initState() {
     initMqtt();
+    getGrades();
     super.initState();
+  }
+
+  void getGrades() async {
+    var grades = await DefaultAssetBundle.of(context)
+        .loadString('assets/json/grade.json');
+    dropDownGrades = gradeFromJson(grades);
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('TX - HS - PH'),
+        title: Text('TX - HS'),
         centerTitle: true,
       ),
       body: buildBody(),
@@ -65,15 +85,16 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
       child: Column(
         children: [
           _dropDownBus(),
-          _dropDownStudent(),
-          _dropDownParent(),
-          FlatButton(
-            onPressed: () {
-              registerHSTX();
-            },
-            child: Text('Thêm'),
-            color: Colors.blue,
-          ),
+          // _dropDownStudent(),
+          // _dropDownParent(),
+          chooseClassContainer(),
+          // FlatButton(
+          //   onPressed: () {
+          //     registerHSTX();
+          //   },
+          //   child: Text('Thêm'),
+          //   color: Colors.blue,
+          // ),
           SizedBox(height: 10),
           buildTableTitle(),
           buildListView(),
@@ -101,10 +122,17 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
           verticalLine(),
           buildTextLabel('Mã', 2),
           verticalLine(),
-          buildTextLabel('Xóa', 1),
+          buildTextLabel('Chọn', 1),
         ],
       ),
     );
+  }
+
+  void getStudents() async {
+    Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
+    pubTopic = GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(s));
+    showLoadingDialog();
   }
 
   Widget buildListView() {
@@ -168,12 +196,20 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                   verticalLine(),
                   Expanded(
                     flex: 1,
-                    child: IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color: Colors.red,
-                      ),
-                    ),
+                    child: Checkbox(
+                        value: hstxs[index].isSelected,
+                        onChanged: (_value) {
+                          hstxs[index].isSelected = !hstxs[index].isSelected;
+                          if (hstxs[index].isSelected) {
+                            mahs.add(hstxs[index].mahs);
+                          }
+                          if (!hstxs[index].isSelected) {
+                            if (mahs.contains(hstxs[index].mahs)) {
+                              mahs.remove(hstxs[index].mahs);
+                            }
+                          }
+                          setState(() {});
+                        }),
                   ),
                 ],
               ),
@@ -378,6 +414,128 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     );
   }
 
+  Widget chooseClassContainer() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      height: 44,
+      child: Row(
+        children: [
+          Expanded(
+            child: _dropDownGrade(),
+          ),
+          Expanded(
+            child: _dropDownClass(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropDownGrade() {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Khối",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _grade,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _grade = data;
+                  print(_grade);
+                  getClasses(_grade);
+                });
+              },
+              items:
+                  dropDownGrades.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  void getClasses(String grade) {
+    Class c = Class(grade, '', Constants.mac);
+    pubTopic = GET_CLASS_BY_GRADE;
+    publishMessage(pubTopic, jsonEncode(c));
+  }
+
+  Widget _dropDownClass() {
+    return Container(
+      margin: const EdgeInsets.only(left: 8),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.green),
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            child: Text(
+              "Lớp",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+          ),
+          Expanded(
+            child: DropdownButton<String>(
+              value: _class,
+              isExpanded: true,
+              icon: Icon(Icons.arrow_drop_down),
+              iconSize: 24,
+              elevation: 16,
+              style: TextStyle(color: Colors.red, fontSize: 18),
+              underline: Container(
+                height: 2,
+                color: Colors.deepPurpleAccent,
+              ),
+              onChanged: (String data) {
+                setState(() {
+                  _class = data;
+                  print(_class);
+                  getStudents();
+                });
+              },
+              items:
+                  dropDownClasses.map<DropdownMenuItem<String>>((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value ?? ''),
+                );
+              }).toList(),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
   void getBus() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
     pubTopic = GET_BUS;
@@ -435,7 +593,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
 
     getBus();
-    Future.delayed(Duration(milliseconds: 500), getParent);
+    // Future.delayed(Duration(milliseconds: 500), getParent);
   }
 
   handle(String message) async {
@@ -464,6 +622,16 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
+      case GET_ALL_STUDENT:
+        students = response.id.map((e) => Student.fromJson(e)).toList();
+        students.forEach((element) {
+          if (mahs.contains(element.mahs)) {
+            element.isSelected = true;
+          }
+        });
+        setState(() {});
+        hideLoadingDialog();
+        break;
       case REGISTER_HS_TX:
         if (response.result == 'true') {
           print('Them thanh cong');
@@ -471,6 +639,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         break;
       case GET_HS_TX:
         hstxs = response.id.map((e) => HSTX.fromJson(e)).toList();
+        hstxs.forEach((element) {
+          element.isSelected = true;
+          if (!mahs.contains(element.mahs)) {
+            mahs.add(element.mahs);
+          }
+        });
         print('_StudentBusScreenState.handle ${hstxs.length}');
         setState(() {});
         break;
@@ -483,6 +657,16 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         });
         setState(() {});
         break;
+      case GET_CLASS_BY_GRADE:
+        classes = response.id.map((e) => Class.fromJson(e)).toList();
+        dropDownClasses.clear();
+        _class = classes[0].lop;
+        classes.forEach((element) {
+          dropDownClasses.add(element.lop);
+        });
+        setState(() {});
+        hideLoadingDialog();
+        break;
     }
     pubTopic = '';
   }
@@ -494,6 +678,7 @@ class HSTX {
   String matx;
   String ten;
   String maph;
+  bool isSelected = false;
 
   String get tenDecode {
     try {

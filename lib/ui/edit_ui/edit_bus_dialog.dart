@@ -437,6 +437,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                             '$afternoonStartTime:$afternoonEndTime',
                             stringDates,
                             stringDates,
+                            [],
                             Constants.mac,
                           );
                           // publishMessage('registerTuyenxe', jsonEncode(b));
@@ -570,6 +571,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                       '$afternoonStartTime:$afternoonEndTime',
                       stringDates.toString(),
                       '',
+                      [],
                       Constants.mac,
                     );
                     publishMessage(pubTopic, jsonEncode(b));
@@ -657,6 +659,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$morningStartTime:$morningEndTime',
+                    [],
                     Constants.mac,
                   );
                   publishMessage(TX_HDS, jsonEncode(b));
@@ -684,6 +687,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$morningStartTime:$morningEndTime',
+                    [],
                     Constants.mac,
                   );
                   publishMessage(TX_HDS, jsonEncode(b));
@@ -725,6 +729,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$afternoonStartTime:$afternoonEndTime',
+                    [],
                     Constants.mac,
                   );
                   publishMessage(TX_HDC, jsonEncode(b));
@@ -752,6 +757,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     '$afternoonStartTime:$afternoonEndTime',
                     stringDates.toString(),
                     '$afternoonStartTime:$afternoonEndTime',
+                    [],
                     Constants.mac,
                   );
                   publishMessage(TX_HDC, jsonEncode(b));
@@ -855,6 +861,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
         '',
         '',
         '',
+        [],
         Constants.mac);
     pubTopic = UPDATE_BUS;
     publishMessage(pubTopic, jsonEncode(updatedBus));
