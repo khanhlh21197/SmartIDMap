@@ -132,14 +132,14 @@ class _LoginPageState extends State<LoginPage> {
     if (mqttClientWrapper.connectionState ==
         MqttCurrentConnectionState.CONNECTED) {
       if (switchValue) {
-        publishMessage('loginph', jsonEncode(user));
+        publishMessage(Constants.LOGIN_PARENT, jsonEncode(user));
       } else {
         mqttClientWrapper.login(user);
       }
     } else {
       await initMqtt();
       if (switchValue) {
-        publishMessage('loginph', jsonEncode(user));
+        publishMessage(Constants.LOGIN_PARENT, jsonEncode(user));
       } else {
         mqttClientWrapper.login(user);
       }

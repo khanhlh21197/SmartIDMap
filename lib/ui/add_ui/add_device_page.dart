@@ -229,7 +229,7 @@ class _AddDeviceScreenState extends State<AddDeviceScreen> {
                   '',
                   Constants.mac,
                 );
-                publishMessage('registertb', jsonEncode(tb));
+                publishMessage(Constants.REGISTER_DEVICE, jsonEncode(tb));
               },
               color: Colors.blue,
               child: Text('Lưu'),

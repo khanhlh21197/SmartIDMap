@@ -16,8 +16,6 @@ class VehicleListScreen extends StatefulWidget {
 }
 
 class _VehicleListScreenState extends State<VehicleListScreen> {
-  static const GET_VEHICLE = 'getXe';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<Vehicle> vehicles = List();
@@ -42,7 +40,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
 
   void getVehicles() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_VEHICLE;
+    pubTopic = Constants.GET_VEHICLE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -281,7 +279,7 @@ class _VehicleListScreenState extends State<VehicleListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_VEHICLE:
+      case Constants.GET_VEHICLE:
         vehicles = response.id.map((e) => Vehicle.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

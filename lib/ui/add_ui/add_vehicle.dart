@@ -230,7 +230,7 @@ class _AddVehihcleScreenState extends State<AddVehihcleScreen> {
                     vehicleTypeController.text,
                     licensePlateController.text,
                     Constants.mac);
-                publishMessage('registerXe', jsonEncode(v));
+                publishMessage(Constants.REGISTER_VEHICLE, jsonEncode(v));
               },
               color: Colors.blue,
               child: Text('Lưu'),

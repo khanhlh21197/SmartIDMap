@@ -303,7 +303,7 @@ class _AddMonitorScreenState extends State<AddMonitorScreen> {
                     utf8.encode(addressController.text).toString(),
                     idController.text,
                     Constants.mac);
-                publishMessage('registergiamsat', jsonEncode(m));
+                publishMessage(Constants.REGISTER_MONITOR, jsonEncode(m));
               },
               color: Colors.blue,
               child: Text('Lưu'),

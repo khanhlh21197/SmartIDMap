@@ -21,9 +21,6 @@ class EditDeviceDialog extends StatefulWidget {
 }
 
 class _EditDeviceDialogState extends State<EditDeviceDialog> {
-  static const UPDATE_DEVICE = 'updatethietbi';
-  static const DELETE_DEVICE = 'deletethietbi';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final idController = TextEditingController();
@@ -53,10 +50,10 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_DEVICE:
+        case Constants.UPDATE_DEVICE:
           widget.updateCallback(updatedDevice);
           break;
-        case DELETE_DEVICE:
+        case Constants.DELETE_DEVICE:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -185,7 +182,7 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_DEVICE;
+                    pubTopic = Constants.DELETE_DEVICE;
                     var d = ThietBi(
                         widget.thietbi.matb, '', '', '', '', Constants.mac);
                     publishMessage(pubTopic, jsonEncode(d));
@@ -256,7 +253,7 @@ class _EditDeviceDialogState extends State<EditDeviceDialog> {
       timeController.text,
       Constants.mac,
     );
-    pubTopic = UPDATE_DEVICE;
+    pubTopic = Constants.UPDATE_DEVICE;
     publishMessage(pubTopic, jsonEncode(updatedDevice));
   }
 

@@ -290,7 +290,7 @@ class _AddDriverScreenState extends State<AddDriverScreen> {
                     utf8.encode(addressController.text).toString(),
                     driverIdController.text,
                     Constants.mac);
-                publishMessage('registerlaixe', jsonEncode(d));
+                publishMessage(Constants.REGISTER_DRIVER, jsonEncode(d));
               },
               color: Colors.blue,
               child: Text('Lưu'),

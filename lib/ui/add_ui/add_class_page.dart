@@ -8,7 +8,6 @@ import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
 import 'package:smartid_map/model/class.dart';
-import 'package:smartid_map/model/thietbi.dart';
 
 class AddClassScreen extends StatefulWidget {
   @override
@@ -16,8 +15,6 @@ class AddClassScreen extends StatefulWidget {
 }
 
 class _AddClassScreenState extends State<AddClassScreen> {
-  static const REGISTER_CLASS = 'registerlop';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   MQTTClientWrapper mqttClientWrapper;
@@ -286,7 +283,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   classController.text,
                   Constants.mac,
                 );
-                pubTopic = REGISTER_CLASS;
+                pubTopic = Constants.REGISTER_CLASS;
                 publishMessage(pubTopic, jsonEncode(c));
               },
               color: Colors.blue,

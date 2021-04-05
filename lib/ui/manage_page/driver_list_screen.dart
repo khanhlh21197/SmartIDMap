@@ -16,8 +16,6 @@ class DriverListScreen extends StatefulWidget {
 }
 
 class _DriverListScreenState extends State<DriverListScreen> {
-  static const GET_DRIVER = 'getlaixe';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<Driver> drivers = List();
@@ -42,7 +40,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
 
   void getDrivers() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_DRIVER;
+    pubTopic = Constants.GET_DRIVER;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -281,7 +279,7 @@ class _DriverListScreenState extends State<DriverListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_DRIVER:
+      case Constants.GET_DRIVER:
         drivers = response.id.map((e) => Driver.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

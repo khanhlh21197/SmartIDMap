@@ -15,8 +15,6 @@ class DeviceListScreen extends StatefulWidget {
 }
 
 class _DeviceListScreenState extends State<DeviceListScreen> {
-  static const GET_DEVICE = 'gettb';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<ThietBi> tbs = List();
@@ -41,7 +39,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
 
   void getDevices() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_DEVICE;
+    pubTopic = Constants.GET_DEVICE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -273,7 +271,7 @@ class _DeviceListScreenState extends State<DeviceListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_DEVICE:
+      case Constants.GET_DEVICE:
         tbs = response.id.map((e) => ThietBi.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

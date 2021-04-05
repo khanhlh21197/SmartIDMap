@@ -7,7 +7,6 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/response/device_response.dart';
 import 'package:smartid_map/model/student.dart';
-import 'package:smartid_map/model/thietbi.dart';
 
 import 'helper/mqttClientWrapper.dart';
 import 'helper/shared_prefs_helper.dart';
@@ -29,7 +28,6 @@ class _HomePageState extends State<HomePage>
     with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   _HomePageState(this.loginResponse);
 
-  static const GET_STUDENT = 'getHSPH';
   final Map loginResponse;
   String iduser;
   MQTTClientWrapper mqttClientWrapper;
@@ -56,7 +54,7 @@ class _HomePageState extends State<HomePage>
   void getStudents() async {
     String maph = await sharedPrefsHelper.getStringValuesSF('email');
     Student t = Student('', '', '', '', maph, '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_HS_PH;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -127,7 +125,7 @@ class _HomePageState extends State<HomePage>
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_STUDENT:
+      case Constants.GET_HS_PH:
         students = response.id.map((e) => Student.fromJson(e)).toList();
         students.forEach((element) {
           manageValues.add(element.tenDecode);

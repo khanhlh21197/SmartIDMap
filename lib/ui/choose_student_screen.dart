@@ -25,8 +25,6 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
   bool isDefault = true;
   SharedPrefsHelper sharedPrefsHelper;
   MQTTClientWrapper mqttClientWrapper;
-  static const GET_STUDENT = 'getHSPH';
-  static const GET_PHONE = 'getdienthoai';
 
   String pubTopic;
   String sdtlx;
@@ -48,7 +46,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
   void getStudents() async {
     String maph = await sharedPrefsHelper.getStringValuesSF('email');
     Student t = Student('', '', '', '', maph, '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_HS_PH;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -169,7 +167,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
   void getPhoneNumber(String matx) {
     Student t = Student('', '', '', '', '', '', '', Constants.mac);
     t.matx = matx;
-    pubTopic = GET_PHONE;
+    pubTopic = Constants.GET_PHONE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -229,7 +227,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
 
   void handle(String message) {
     switch (pubTopic) {
-      case GET_STUDENT:
+      case Constants.GET_HS_PH:
         Map responseMap = jsonDecode(message);
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
@@ -241,7 +239,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
         });
         setState(() {});
         break;
-      case GET_PHONE:
+      case Constants.GET_PHONE:
         final test = testFromJson(message);
         sdtlx = test.id.sdtlx;
         sdtgs = test.id.sdtgs;

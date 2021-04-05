@@ -25,19 +25,6 @@ class AddBusScreen extends StatefulWidget {
 }
 
 class _AddBusScreenState extends State<AddBusScreen> {
-  final String REGISTER_LICH_KLV = 'registerlichklv';
-  final String TX_HDS = 'updateTuyenxegiohds';
-  final String TX_HDC = 'updateTuyenxegiohdc';
-  static const GET_MONITOR = 'getgiamsat';
-  static const GET_DRIVER = 'getlaixe';
-  static const GET_DEVICE = 'gettb';
-  static const GET_VEHICLE = 'getXe';
-  static const REGISTER_BUS = 'registerTuyenxe';
-  static const GET_ID_ALL = 'getmaall';
-  static const GET_STUDENT = 'getHS';
-  static const GET_CLASS = 'getlop';
-  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
-
   final String SUB_MONITOR = Constants.mac + 'monitor';
   final String SUB_DRIVER = Constants.mac + 'driver';
   final String SUB_DEVICE = Constants.mac + 'device';
@@ -116,42 +103,42 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   void getDevices() async {
     ThietBi t = ThietBi('', '', '', '', '', SUB_DEVICE);
-    pubTopic = GET_DEVICE;
+    pubTopic = Constants.GET_DEVICE;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
 
   void getMonitors() async {
     ThietBi t = ThietBi('', '', '', '', '', SUB_MONITOR);
-    pubTopic = GET_MONITOR;
+    pubTopic = Constants.GET_MONITOR;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
 
   void getDrivers() async {
     ThietBi t = ThietBi('', '', '', '', '', SUB_DRIVER);
-    pubTopic = GET_DRIVER;
+    pubTopic = Constants.GET_DRIVER;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
 
   void getVehicles() async {
     ThietBi t = ThietBi('', '', '', '', '', SUB_VEHICLE);
-    pubTopic = GET_VEHICLE;
+    pubTopic = Constants.GET_VEHICLE;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
 
   void getIdAll() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_ID_ALL;
+    pubTopic = Constants.GET_ID_ALL;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
 
   void getStudents() async {
     Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(s));
     showLoadingDialog();
   }
@@ -323,8 +310,6 @@ class _AddBusScreenState extends State<AddBusScreen> {
           verticalLine(),
           buildTextLabel('Mã', 2),
           verticalLine(),
-          buildTextLabel('Địa chỉ', 2),
-          verticalLine(),
           buildTextLabel('Chọn', 1),
         ],
       ),
@@ -371,8 +356,6 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   buildTextData(students[index].tenDecode ?? '', 4),
                   verticalLine(),
                   buildTextData(students[index].mahs ?? '', 2),
-                  verticalLine(),
-                  buildTextData(students[index].nhaDecode ?? '', 2),
                   verticalLine(),
                   Expanded(
                     flex: 1,
@@ -492,7 +475,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     mahs,
                     Constants.mac,
                   );
-                  publishMessage(TX_HDS, jsonEncode(b));
+                  publishMessage(Constants.TX_HDS, jsonEncode(b));
                 });
               },
               child: Text('Bắt đầu $morningStartTime'),
@@ -520,7 +503,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     mahs,
                     Constants.mac,
                   );
-                  publishMessage(TX_HDS, jsonEncode(b));
+                  publishMessage(Constants.TX_HDS, jsonEncode(b));
                 });
               },
               child: Text('Kết thúc $morningEndTime'),
@@ -562,7 +545,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     mahs,
                     Constants.mac,
                   );
-                  publishMessage(TX_HDC, jsonEncode(b));
+                  publishMessage(Constants.TX_HDC, jsonEncode(b));
                 });
               },
               child: Text('Bắt đầu $afternoonStartTime'),
@@ -590,7 +573,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                     mahs,
                     Constants.mac,
                   );
-                  publishMessage(TX_HDC, jsonEncode(b));
+                  publishMessage(Constants.TX_HDC, jsonEncode(b));
                 });
               },
               child: Text('Kết thúc $afternoonEndTime'),
@@ -951,6 +934,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                 setState(() {
                   _grade = data;
                   print(_grade);
+                  _class = null;
                   getClasses(_grade);
                 });
               },
@@ -970,7 +954,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
 
   void getClasses(String grade) {
     Class c = Class(grade, '', Constants.mac);
-    pubTopic = GET_CLASS_BY_GRADE;
+    pubTopic = Constants.GET_CLASS_BY_GRADE;
     publishMessage(pubTopic, jsonEncode(c));
   }
 
@@ -1091,7 +1075,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
                   mahs,
                   Constants.mac,
                 );
-                pubTopic = REGISTER_BUS;
+                pubTopic = Constants.REGISTER_BUS;
                 publishMessage(pubTopic, jsonEncode(b));
                 print('_AddBusScreenState.buildButton ${jsonEncode(b)}');
               },
@@ -1126,13 +1110,13 @@ class _AddBusScreenState extends State<AddBusScreen> {
     Map responseMap = jsonDecode(message);
 
     switch (pubTopic) {
-      case REGISTER_BUS:
+      case Constants.REGISTER_BUS:
         if (responseMap['result'] == 'true' &&
             responseMap['errorCode'] == '0') {
           Navigator.pop(context);
         }
         break;
-      case GET_STUDENT:
+      case Constants.GET_STUDENT:
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
         students.forEach((element) {
@@ -1143,13 +1127,12 @@ class _AddBusScreenState extends State<AddBusScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
-      case GET_CLASS:
-      case GET_CLASS_BY_GRADE:
+      case Constants.GET_CLASS:
+      case Constants.GET_CLASS_BY_GRADE:
         var response = DeviceResponse.fromJson(responseMap);
         print('_AddBusScreenState.handle $responseMap');
         classes = response.id.map((e) => Class.fromJson(e)).toList();
         dropDownClasses.clear();
-        _class = classes[0].lop;
         classes.forEach((element) {
           dropDownClasses.add(element.lop);
         });
@@ -1192,7 +1175,7 @@ class _AddBusScreenState extends State<AddBusScreen> {
       //   // hideLoadingDialog();
       //   setState(() {});
       //   break;
-      case GET_ID_ALL:
+      case Constants.GET_ID_ALL:
         var response = MqttResponse.fromJson(responseMap);
         dropDownVehicles.clear();
         dropDownDrivers.clear();

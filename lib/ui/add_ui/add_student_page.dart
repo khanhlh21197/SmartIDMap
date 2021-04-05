@@ -10,14 +10,12 @@ import 'package:smartid_map/helper/loader.dart';
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
+import 'package:smartid_map/model/bus.dart';
 import 'package:smartid_map/model/class.dart';
 import 'package:smartid_map/model/student.dart';
+import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/secrets.dart';
-import 'package:smartid_map/ui/add_ui/map_view_student.dart';
-
-import 'package:smartid_map/model/bus.dart';
-import 'package:smartid_map/model/thietbi.dart';
 
 import '../../response/device_response.dart';
 
@@ -31,13 +29,6 @@ class AddStudentScreen extends StatefulWidget {
 }
 
 class _AddStudentScreenState extends State<AddStudentScreen> {
-  static const GET_BUS = 'getTuyenxe';
-  static const REGISTER_STUDENT = 'registerHS';
-  static const GET_PARENT = 'getph';
-  static const GET_STUDENT = 'getHS';
-  static const GET_CLASS = 'getlop';
-  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
 
@@ -322,7 +313,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 //   '',
                 //   Constants.mac,
                 // );
-                pubTopic = REGISTER_STUDENT;
+                pubTopic = Constants.REGISTER_STUDENT;
                 publishMessage(pubTopic, jsonEncode(s));
               },
               color: Colors.blue,
@@ -566,7 +557,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   void getClasses(String grade) {
     Class c = Class(grade, '', Constants.mac);
-    pubTopic = GET_CLASS_BY_GRADE;
+    pubTopic = Constants.GET_CLASS_BY_GRADE;
     publishMessage(pubTopic, jsonEncode(c));
   }
 
@@ -641,8 +632,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     print('_AddStudentScreenState.handle ${buses.length}');
 
     switch (pubTopic) {
-      case GET_CLASS:
-      case GET_CLASS_BY_GRADE:
+      case Constants.GET_CLASS:
+      case Constants.GET_CLASS_BY_GRADE:
         print('_AddBusScreenState.handle $responseMap');
         classes = response.id.map((e) => Class.fromJson(e)).toList();
         dropDownClasses.clear();
@@ -651,7 +642,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         });
         setState(() {});
         break;
-      case GET_BUS:
+      case Constants.GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         busIds.clear();
         buses.forEach((element) {
@@ -660,13 +651,13 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         setState(() {});
         // hideLoadingDialog();
         break;
-      case REGISTER_STUDENT:
+      case Constants.REGISTER_STUDENT:
         if (responseMap['result'] == 'true' &&
             responseMap['errorCode'] == '0') {
           Navigator.pop(context);
         }
         break;
-      case GET_PARENT:
+      case Constants.GET_PARENT:
         parents = response.id.map((e) => User.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${parents.length}');
         dropDownParents.clear();
@@ -675,7 +666,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
         });
         setState(() {});
         break;
-      case GET_STUDENT:
+      case Constants.GET_STUDENT:
         students = response.id.map((e) => Student.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${parents.length}');
         dropDownStudents.clear();
@@ -689,13 +680,13 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
   void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_PARENT;
+    pubTopic = Constants.GET_PARENT;
     publishMessage(pubTopic, jsonEncode(t));
   }
 
   void getStudentId() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
   }
 

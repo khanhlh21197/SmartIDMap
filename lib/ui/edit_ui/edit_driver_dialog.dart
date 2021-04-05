@@ -13,10 +13,7 @@ class EditDriverDialog extends StatefulWidget {
   final Function(dynamic) deleteCallback;
 
   const EditDriverDialog(
-      {Key key,
-      this.driver,
-      this.updateCallback,
-      this.deleteCallback})
+      {Key key, this.driver, this.updateCallback, this.deleteCallback})
       : super(key: key);
 
   @override
@@ -24,9 +21,6 @@ class EditDriverDialog extends StatefulWidget {
 }
 
 class _EditDriverDialogState extends State<EditDriverDialog> {
-  static const UPDATE_DRIVER = 'updatelaixe';
-  static const DELETE_DRIVER = 'deletelaixe';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final driverIdController = TextEditingController();
@@ -57,10 +51,10 @@ class _EditDriverDialogState extends State<EditDriverDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_DRIVER:
+        case Constants.UPDATE_DRIVER:
           widget.updateCallback(updatedDriver);
           break;
-        case DELETE_DRIVER:
+        case Constants.DELETE_DRIVER:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -195,7 +189,7 @@ class _EditDriverDialogState extends State<EditDriverDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_DRIVER;
+                    pubTopic = Constants.DELETE_DRIVER;
                     var d =
                         Driver('', '', '', widget.driver.malx, Constants.mac);
                     publishMessage(pubTopic, jsonEncode(d));
@@ -264,7 +258,7 @@ class _EditDriverDialogState extends State<EditDriverDialog> {
         utf8.encode(addressController.text).toString(),
         driverIdController.text,
         Constants.mac);
-    pubTopic = UPDATE_DRIVER;
+    pubTopic = Constants.UPDATE_DRIVER;
     publishMessage(pubTopic, jsonEncode(updatedDriver));
   }
 

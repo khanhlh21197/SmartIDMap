@@ -25,9 +25,6 @@ class EditMonitorDialog extends StatefulWidget {
 }
 
 class _EditMonitorDialogState extends State<EditMonitorDialog> {
-  static const UPDATE_MONITOR = 'updategiamsat';
-  static const DELETE_MONITOR = 'deletegiamsat';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final _places = new GoogleMapsPlaces(apiKey: Secrets.API_KEY);
   final scrollController = ScrollController();
@@ -62,10 +59,10 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_MONITOR:
+        case Constants.UPDATE_MONITOR:
           widget.updateCallback(updatedMonitor);
           break;
-        case DELETE_MONITOR:
+        case Constants.DELETE_MONITOR:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -257,7 +254,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_MONITOR;
+                    pubTopic = Constants.DELETE_MONITOR;
                     var m =
                         Monitor('', '', '', widget.monitor.mags, Constants.mac);
                     publishMessage(pubTopic, jsonEncode(m));
@@ -326,7 +323,7 @@ class _EditMonitorDialogState extends State<EditMonitorDialog> {
         utf8.encode(addressController.text).toString(),
         idController.text,
         Constants.mac);
-    pubTopic = UPDATE_MONITOR;
+    pubTopic = Constants.UPDATE_MONITOR;
     publishMessage(pubTopic, jsonEncode(updatedMonitor));
   }
 

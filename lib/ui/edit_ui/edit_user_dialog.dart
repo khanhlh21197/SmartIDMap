@@ -27,12 +27,6 @@ class EditUserDialog extends StatefulWidget {
 
 class _EditUserDialogState extends State<EditUserDialog>
     with SingleTickerProviderStateMixin {
-  static const UPDATE_USER = 'updateuser';
-  static const UPDATE_PARENT = 'updateph';
-  static const DELETE_USER = 'deleteuser';
-  static const CHANGE_PASSWORD = 'updatepass';
-  static const GET_DEPARTMENT = 'loginkhoa';
-
   final scrollController = ScrollController();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
@@ -85,15 +79,15 @@ class _EditUserDialogState extends State<EditUserDialog>
       return;
     }
     switch (pubTopic) {
-      case UPDATE_USER:
-      case UPDATE_PARENT:
+      case Constants.UPDATE_USER:
+      case Constants.UPDATE_PARENT:
         widget.updateCallback(updatedUser);
         Navigator.pop(context);
         break;
-      case CHANGE_PASSWORD:
+      case Constants.CHANGE_PASSWORD:
         Navigator.pop(context);
         break;
-      case DELETE_USER:
+      case Constants.DELETE_USER:
         widget.deleteCallback('true');
         Navigator.pop(context);
         Navigator.pop(context);
@@ -366,7 +360,7 @@ class _EditUserDialogState extends State<EditUserDialog>
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_USER;
+                    pubTopic = Constants.DELETE_USER;
                     var u = User(Constants.mac, widget.user.user,
                         widget.user.pass, '', '', '', '', '', '');
                     publishMessage(pubTopic, jsonEncode(u));
@@ -420,14 +414,14 @@ class _EditUserDialogState extends State<EditUserDialog>
                 switch (_tabController.index) {
                   case 0:
                     if (widget.switchValue) {
-                      pubTopic = UPDATE_PARENT;
+                      pubTopic = Constants.UPDATE_PARENT;
                     } else {
-                      pubTopic = UPDATE_USER;
+                      pubTopic = Constants.UPDATE_USER;
                     }
                     _tryEdit(pubTopic);
                     break;
                   case 1:
-                    pubTopic = CHANGE_PASSWORD;
+                    pubTopic = Constants.CHANGE_PASSWORD;
                     changePass();
                     break;
                 }

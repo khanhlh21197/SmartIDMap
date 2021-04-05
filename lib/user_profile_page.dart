@@ -24,10 +24,6 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
-  static const GET_INFO_USER = 'getinfouser';
-  static const GET_INFO_PARENT = 'getinfoph';
-  static const GET_DEPARTMENT = 'loginkhoa';
-
   MQTTClientWrapper mqttClientWrapper;
   SharedPrefsHelper sharedPrefsHelper;
   User user;
@@ -64,9 +60,9 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   void getInfoUser() async {
     if (widget.switchValue) {
-      pubTopic = GET_INFO_PARENT;
+      pubTopic = Constants.GET_INFO_PARENT;
     } else {
-      pubTopic = GET_INFO_USER;
+      pubTopic = Constants.GET_INFO_USER;
     }
     String email = await sharedPrefsHelper.getStringValuesSF('email');
     String password = await sharedPrefsHelper.getStringValuesSF('password');
@@ -80,7 +76,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   void getDepartment() {
     Department d = Department('', '', Constants.mac);
-    pubTopic = GET_DEPARTMENT;
+    pubTopic = Constants.GET_DEPARTMENT;
     publishMessage(pubTopic, jsonEncode(d));
     showLoadingDialog();
   }
@@ -315,7 +311,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     print('Response: ${response.id}');
 
     switch (pubTopic) {
-      case GET_DEPARTMENT:
+      case Constants.GET_DEPARTMENT:
         departments = response.id.map((e) => Department.fromJson(e)).toList();
         dropDownItems.clear();
         departments.forEach((element) {
@@ -347,8 +343,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
               );
             });
         break;
-      case GET_INFO_USER:
-      case GET_INFO_PARENT:
+      case Constants.GET_INFO_USER:
+      case Constants.GET_INFO_PARENT:
         setState(() {
           List<User> users = response.id.map((e) => User.fromJson(e)).toList();
           user = users[0];

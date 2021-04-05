@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/model/class.dart';
 import 'package:smartid_map/model/user.dart';
 
@@ -9,8 +10,6 @@ import '../../helper/mqttClientWrapper.dart';
 import '../../helper/response/device_response.dart';
 import '../../model/bus.dart';
 import '../../model/student.dart';
-import 'package:smartid_map/helper/constants.dart' as Constants;
-
 import '../../model/thietbi.dart';
 
 class StudentBusScreen extends StatefulWidget {
@@ -19,15 +18,6 @@ class StudentBusScreen extends StatefulWidget {
 }
 
 class _StudentBusScreenState extends State<StudentBusScreen> {
-  static const GET_STUDENT = 'getHSkmatx';
-  static const GET_ALL_STUDENT = 'getHS';
-  static const GET_BUS = 'getTuyenxe';
-  static const REGISTER_HS_TX = 'registerHSTX';
-  static const GET_HS_TX = 'getHSTX';
-  static const GET_PARENT = 'getph';
-  static const GET_CLASS = 'getlop';
-  static const GET_CLASS_BY_GRADE = 'getloptheokhoi';
-
   MQTTClientWrapper mqttClientWrapper;
 
   List<Bus> buses = List();
@@ -43,9 +33,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   var parentID;
 
   List<HSTX> hstxs = List();
-  List<String> mahs = List();
+  List<String> studentBusOldIds = List();
+  List<String> addSttudentIds = List();
+  List<String> removeStudentIds = List();
 
   String pubTopic;
+  String tableTitle = 'Danh sách học sinh theo tuyến xe';
   bool isLoading = true;
 
   List<Class> classes = List();
@@ -96,8 +89,63 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
           //   color: Colors.blue,
           // ),
           SizedBox(height: 10),
+          Text(
+            tableTitle,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 10),
           buildTableTitle(),
           buildListView(),
+          buildButton(),
+          testText(),
+        ],
+      ),
+    );
+  }
+
+  Widget buildButton() {
+    return Container(
+      height: 40,
+      margin: const EdgeInsets.symmetric(
+        vertical: 8,
+        horizontal: 32,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: FlatButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text('Hủy'),
+            ),
+          ),
+          Expanded(
+            child: RaisedButton(
+              onPressed: () {
+                var updateHSTX = HSTX(Constants.mac, '', busId, '');
+                updateHSTX.themhs = studentBusOldIds;
+                updateHSTX.xoahs = removeStudentIds;
+                pubTopic = Constants.UPDATE_HS_TX;
+                publishMessage(pubTopic, jsonEncode(updateHSTX));
+                print(
+                    '_AddBusScreenState.buildButton ${jsonEncode(updateHSTX)}');
+              },
+              color: Colors.blue,
+              child: Text('Lưu'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget testText() {
+    return Container(
+      child: Column(
+        children: [
+          Text('Thêm: $addSttudentIds'),
+          Text('Xóa: $removeStudentIds'),
         ],
       ),
     );
@@ -105,13 +153,14 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   void registerHSTX() {
     var hstx = HSTX(Constants.mac, studentId, busId, parentID);
-    pubTopic = REGISTER_HS_TX;
+    pubTopic = Constants.REGISTER_HS_TX;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
 
   Widget buildTableTitle() {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 8),
       color: Colors.yellow,
       height: 40,
       child: Row(
@@ -130,21 +179,39 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   void getStudents() async {
     Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT;
+    publishMessage(pubTopic, jsonEncode(s));
+    showLoadingDialog();
+  }
+
+  void getStudentsByClass() async {
+    Student s = Student('', '', '', '', '', _class, _grade, Constants.mac);
+    pubTopic = Constants.GET_STUDENT_BY_CLASS;
     publishMessage(pubTopic, jsonEncode(s));
     showLoadingDialog();
   }
 
   Widget buildListView() {
-    return hstxs.length != 0
+    List<dynamic> displayList = List();
+    switch (pubTopic) {
+      case Constants.GET_STUDENT:
+      case Constants.GET_STUDENT_BY_CLASS:
+        displayList = students;
+        break;
+      case Constants.GET_HS_TX:
+        displayList = hstxs;
+        break;
+    }
+    return displayList.length != 0
         ? Container(
+            margin: const EdgeInsets.symmetric(horizontal: 8),
             child: Expanded(
               child: ListView.builder(
                 scrollDirection: Axis.vertical,
                 shrinkWrap: true,
-                itemCount: hstxs.length,
+                itemCount: displayList.length,
                 itemBuilder: (context, index) {
-                  return itemView(index);
+                  return itemView(index, displayList);
                 },
               ),
             ),
@@ -156,30 +223,14 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
           ));
   }
 
-  Widget itemView(int index) {
+  Widget itemView(int index, List<dynamic> displayList) {
+    displayList.forEach((element) {
+      if (addSttudentIds.contains(element.mahs)) {
+        element.isSelected = true;
+      }
+    });
     return InkWell(
-      onTap: () async {
-        // await showDialog(
-        //     context: context,
-        //     builder: (BuildContext context) {
-        //       return Dialog(
-        //         shape: RoundedRectangleBorder(
-        //             borderRadius: BorderRadius.circular(10.0)),
-        //         //this right here
-        //         child: Container(
-        //           child: EditStudentDialog(
-        //             student: students[index],
-        //             deleteCallback: (param) {
-        //               getStudents();
-        //             },
-        //             updateCallback: (updatedDevice) {
-        //               getStudents();
-        //             },
-        //           ),
-        //         ),
-        //       );
-        //     });
-      },
+      onTap: () async {},
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 1),
         child: Column(
@@ -190,24 +241,35 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(hstxs[index].tenDecode, 4),
+                  buildTextData(displayList[index].tenDecode, 4),
                   verticalLine(),
-                  buildTextData(hstxs[index].mahs, 2),
+                  buildTextData(displayList[index].mahs, 2),
                   verticalLine(),
                   Expanded(
                     flex: 1,
                     child: Checkbox(
-                        value: hstxs[index].isSelected,
+                        value: displayList[index].isSelected,
                         onChanged: (_value) {
-                          hstxs[index].isSelected = !hstxs[index].isSelected;
-                          if (hstxs[index].isSelected) {
-                            mahs.add(hstxs[index].mahs);
-                          }
-                          if (!hstxs[index].isSelected) {
-                            if (mahs.contains(hstxs[index].mahs)) {
-                              mahs.remove(hstxs[index].mahs);
+                          displayList[index].isSelected =
+                              !displayList[index].isSelected;
+                          if (displayList[index].isSelected) {
+                            if (!studentBusOldIds
+                                .contains(displayList[index].mahs)) {
+                              addSttudentIds.add(displayList[index].mahs);
                             }
+                            removeStudentIds.remove(displayList[index].mahs);
                           }
+                          if (!displayList[index].isSelected) {
+                            if (studentBusOldIds
+                                .contains(displayList[index].mahs)) {
+                              removeStudentIds.add(displayList[index].mahs);
+                            }
+                            addSttudentIds.remove(displayList[index].mahs);
+                          }
+                          print(
+                              '_StudentBusScreenState.itemView $studentBusOldIds');
+                          print(
+                              '_StudentBusScreenState.itemView $removeStudentIds');
                           setState(() {});
                         }),
                   ),
@@ -260,7 +322,6 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   }
 
   Widget _dropDownBus() {
-    print('_HomePageState._dropDownManage');
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8),
       margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
@@ -274,7 +335,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         children: <Widget>[
           Expanded(
             child: Text(
-              "TX",
+              'Chọn Tuyến xe',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
           ),
@@ -287,22 +348,27 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
               elevation: 16,
               style: TextStyle(color: Colors.red, fontSize: 18),
               underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
+                  // height: 2,
+                  // color: Colors.deepPurpleAccent,
+                  ),
               onChanged: (String data) {
                 setState(() {
                   busId = data;
                   print(busId);
-                  getAvaiableStudents();
-                  Future.delayed(Duration(milliseconds: 500), getHSTX);
+                  _grade = null;
+                  _class = null;
+                  removeStudentIds.clear();
+                  studentBusOldIds.clear();
+                  // getAvaiableStudents();
+                  // Future.delayed(Duration(milliseconds: 500), getHSTX);
+                  getHSTX();
                 });
               },
               items:
                   dropDownBuses.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value ?? ''),
+                  child: Center(child: Text(value ?? '')),
                 );
               }).toList(),
             ),
@@ -416,7 +482,6 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   Widget chooseClassContainer() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8),
       margin: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
       height: 44,
       child: Row(
@@ -443,9 +508,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: Text(
-              "Khối",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            child: Container(
+              margin: const EdgeInsets.only(left: 8),
+              child: Text(
+                "Khối",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
             ),
           ),
           Expanded(
@@ -456,14 +524,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
               iconSize: 24,
               elevation: 16,
               style: TextStyle(color: Colors.red, fontSize: 18),
-              underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
+              underline: Container(),
               onChanged: (String data) {
                 setState(() {
                   _grade = data;
                   print(_grade);
+                  _class = null;
                   getClasses(_grade);
                 });
               },
@@ -471,7 +537,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                   dropDownGrades.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value ?? ''),
+                  child: Center(child: Text(value ?? '')),
                 );
               }).toList(),
             ),
@@ -483,7 +549,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   void getClasses(String grade) {
     Class c = Class(grade, '', Constants.mac);
-    pubTopic = GET_CLASS_BY_GRADE;
+    pubTopic = Constants.GET_CLASS_BY_GRADE;
     publishMessage(pubTopic, jsonEncode(c));
   }
 
@@ -498,9 +564,12 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: <Widget>[
           Expanded(
-            child: Text(
-              "Lớp",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            child: Container(
+              margin: const EdgeInsets.only(left: 8),
+              child: Text(
+                "Lớp",
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
             ),
           ),
           Expanded(
@@ -511,22 +580,19 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
               iconSize: 24,
               elevation: 16,
               style: TextStyle(color: Colors.red, fontSize: 18),
-              underline: Container(
-                height: 2,
-                color: Colors.deepPurpleAccent,
-              ),
+              underline: Container(),
               onChanged: (String data) {
                 setState(() {
                   _class = data;
                   print(_class);
-                  getStudents();
+                  getStudentsByClass();
                 });
               },
               items:
                   dropDownClasses.map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value ?? ''),
+                  child: Center(child: Text(value ?? '')),
                 );
               }).toList(),
             ),
@@ -538,27 +604,27 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   void getBus() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_BUS;
+    pubTopic = Constants.GET_BUS;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
 
   void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_PARENT;
+    pubTopic = Constants.GET_PARENT;
     publishMessage(pubTopic, jsonEncode(t));
   }
 
   void getAvaiableStudents() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT_BY_BUS_ID;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
 
   void getHSTX() {
     var hstx = HSTX(Constants.mac, '', busId, parentID);
-    pubTopic = GET_HS_TX;
+    pubTopic = Constants.GET_HS_TX;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
@@ -591,7 +657,6 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     mqttClientWrapper =
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
-
     getBus();
     // Future.delayed(Duration(milliseconds: 500), getParent);
   }
@@ -602,17 +667,19 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
     print('Response: ${response.id}');
 
     switch (pubTopic) {
-      case GET_BUS:
+      case Constants.GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${buses.length}');
         dropDownBuses.clear();
         buses.forEach((element) {
           dropDownBuses.add(element.matx);
         });
+        busId = dropDownBuses[0];
+        getHSTX();
         setState(() {});
         hideLoadingDialog();
         break;
-      case GET_STUDENT:
+      case Constants.GET_STUDENT_BY_BUS_ID:
         students = response.id.map((e) => Student.fromJson(e)).toList();
         dropDownStudents.clear();
         students.forEach((element) {
@@ -622,33 +689,37 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
-      case GET_ALL_STUDENT:
+      case Constants.GET_STUDENT:
+      case Constants.GET_STUDENT_BY_CLASS:
+        tableTitle = 'Chỉnh sửa danh sách';
         students = response.id.map((e) => Student.fromJson(e)).toList();
         students.forEach((element) {
-          if (mahs.contains(element.mahs)) {
+          if (studentBusOldIds.contains(element.mahs)) {
             element.isSelected = true;
           }
         });
         setState(() {});
         hideLoadingDialog();
         break;
-      case REGISTER_HS_TX:
+      case Constants.REGISTER_HS_TX:
         if (response.result == 'true') {
           print('Them thanh cong');
         }
         break;
-      case GET_HS_TX:
+      case Constants.GET_HS_TX:
+        tableTitle = 'Danh sách học sinh theo tuyến xe';
         hstxs = response.id.map((e) => HSTX.fromJson(e)).toList();
+        studentBusOldIds.clear();
         hstxs.forEach((element) {
           element.isSelected = true;
-          if (!mahs.contains(element.mahs)) {
-            mahs.add(element.mahs);
+          if (!studentBusOldIds.contains(element.mahs)) {
+            studentBusOldIds.add(element.mahs);
           }
         });
         print('_StudentBusScreenState.handle ${hstxs.length}');
         setState(() {});
         break;
-      case GET_PARENT:
+      case Constants.GET_PARENT:
         parents = response.id.map((e) => User.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${parents.length}');
         dropDownParents.clear();
@@ -657,10 +728,10 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         });
         setState(() {});
         break;
-      case GET_CLASS_BY_GRADE:
+      case Constants.GET_CLASS_BY_GRADE:
         classes = response.id.map((e) => Class.fromJson(e)).toList();
         dropDownClasses.clear();
-        _class = classes[0].lop;
+        getStudentsByClass();
         classes.forEach((element) {
           dropDownClasses.add(element.lop);
         });
@@ -668,7 +739,6 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
         hideLoadingDialog();
         break;
     }
-    pubTopic = '';
   }
 }
 
@@ -679,6 +749,8 @@ class HSTX {
   String ten;
   String maph;
   bool isSelected = false;
+  List<String> themhs;
+  List<String> xoahs;
 
   String get tenDecode {
     try {

@@ -1,15 +1,13 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/model/user.dart';
 
 import '../../helper/models.dart';
 import '../../helper/mqttClientWrapper.dart';
 import '../../helper/response/device_response.dart';
-import '../../model/bus.dart';
 import '../../model/student.dart';
-import 'package:smartid_map/helper/constants.dart' as Constants;
-
 import '../../model/thietbi.dart';
 
 class StudentParentScreen extends StatefulWidget {
@@ -18,11 +16,6 @@ class StudentParentScreen extends StatefulWidget {
 }
 
 class _StudentParentScreenState extends State<StudentParentScreen> {
-  static const GET_STUDENT = 'getHS';
-  static const GET_PARENT = 'getph';
-  static const REGISTER_HS_PH = 'registerHSPH';
-  static const GET_HS_PH = 'getHSPH';
-
   MQTTClientWrapper mqttClientWrapper;
 
   List<User> parents = List();
@@ -88,7 +81,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
 
   void registerHSTX() {
     var hstx = HSTX(Constants.mac, studentId, parentID);
-    pubTopic = REGISTER_HS_PH;
+    pubTopic = Constants.REGISTER_HS_PH;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
@@ -298,21 +291,21 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
 
   void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_PARENT;
+    pubTopic = Constants.GET_PARENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
 
   void getStudents() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
 
   void getHSTX() {
     var hstx = HSTX(Constants.mac, '', parentID);
-    pubTopic = GET_HS_PH;
+    pubTopic = Constants.GET_HS_PH;
     publishMessage(pubTopic, jsonEncode(hstx));
     showLoadingDialog();
   }
@@ -356,7 +349,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
     print('Response: ${response.id}');
 
     switch (pubTopic) {
-      case GET_PARENT:
+      case Constants.GET_PARENT:
         parents = response.id.map((e) => User.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${parents.length}');
         dropDownParents.clear();
@@ -366,7 +359,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
-      case GET_STUDENT:
+      case Constants.GET_STUDENT:
         students = response.id.map((e) => Student.fromJson(e)).toList();
         dropDownStudents.clear();
         students.forEach((element) {
@@ -376,12 +369,12 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
         setState(() {});
         hideLoadingDialog();
         break;
-      case REGISTER_HS_PH:
+      case Constants.REGISTER_HS_PH:
         if (response.result == 'true') {
           print('Them thanh cong');
         }
         break;
-      case GET_HS_PH:
+      case Constants.GET_HS_PH:
         hstxs = response.id.map((e) => HSTX.fromJson(e)).toList();
         print('_StudentBusScreenState.handle ${hstxs.length}');
         setState(() {});

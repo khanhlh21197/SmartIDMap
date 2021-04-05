@@ -16,8 +16,6 @@ class MonitorListScreen extends StatefulWidget {
 }
 
 class _MonitorListScreenState extends State<MonitorListScreen> {
-  static const GET_MONITOR = 'getgiamsat';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<Monitor> monitors = List();
@@ -42,7 +40,7 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
 
   void getMonitors() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_MONITOR;
+    pubTopic = Constants.GET_MONITOR;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -268,7 +266,7 @@ class _MonitorListScreenState extends State<MonitorListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_MONITOR:
+      case Constants.GET_MONITOR:
         monitors = response.id.map((e) => Monitor.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

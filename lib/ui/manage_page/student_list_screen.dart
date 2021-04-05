@@ -16,8 +16,6 @@ class StudentListScreen extends StatefulWidget {
 }
 
 class _StudentListScreenState extends State<StudentListScreen> {
-  static const GET_STUDENT = 'getHS';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<Student> students = List();
@@ -42,7 +40,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
 
   void getStudents() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_STUDENT;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -281,7 +279,7 @@ class _StudentListScreenState extends State<StudentListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_STUDENT:
+      case Constants.GET_STUDENT:
         students = response.id.map((e) => Student.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

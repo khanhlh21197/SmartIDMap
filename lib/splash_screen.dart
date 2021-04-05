@@ -24,7 +24,13 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     sharedPrefsHelper = SharedPrefsHelper();
+    getSharedPrefsData();
     super.initState();
+  }
+
+  void getSharedPrefsData() async {
+    _serverUriController.text =
+        await sharedPrefsHelper.getStringValuesSF(Constants.server_uri_key);
   }
 
   @override

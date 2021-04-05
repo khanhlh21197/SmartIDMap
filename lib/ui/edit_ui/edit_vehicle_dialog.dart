@@ -21,9 +21,6 @@ class EditVehicleDialog extends StatefulWidget {
 }
 
 class _EditVehicleDialogState extends State<EditVehicleDialog> {
-  static const UPDATE_VEHICLE = 'updateXe';
-  static const DELETE_VEHICLE = 'deleteXe';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final monitorIdController = TextEditingController();
@@ -56,10 +53,10 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_VEHICLE:
+        case Constants.UPDATE_VEHICLE:
           widget.updateCallback(updatedVehicle);
           break;
-        case DELETE_VEHICLE:
+        case Constants.DELETE_VEHICLE:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
       }
@@ -204,12 +201,9 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_VEHICLE;
-                    var v = Vehicle(
-                        widget.vehicle.maxe,
-                        '',
-                        widget.vehicle.bienso,
-                        Constants.mac);
+                    pubTopic = Constants.DELETE_VEHICLE;
+                    var v = Vehicle(widget.vehicle.maxe, '',
+                        widget.vehicle.bienso, Constants.mac);
                     publishMessage(pubTopic, jsonEncode(v));
                   },
                   child: new Text(
@@ -270,12 +264,9 @@ class _EditVehicleDialogState extends State<EditVehicleDialog> {
   }
 
   Future<void> _tryEdit() async {
-    updatedVehicle = Vehicle(
-        vehicleIdController.text,
-        vehicleTypeController.text,
-        licensePlateController.text,
-        Constants.mac);
-    pubTopic = UPDATE_VEHICLE;
+    updatedVehicle = Vehicle(vehicleIdController.text,
+        vehicleTypeController.text, licensePlateController.text, Constants.mac);
+    pubTopic = Constants.UPDATE_VEHICLE;
     publishMessage(pubTopic, jsonEncode(updatedVehicle));
   }
 

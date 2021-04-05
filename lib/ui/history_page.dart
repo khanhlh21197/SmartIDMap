@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
-import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/model/bus.dart';
 import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/response/device_response.dart';
@@ -14,8 +14,6 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  static const GET_BUS = 'getTuyenxe';
-
   MQTTClientWrapper mqttClientWrapper;
   String pubTopic;
   bool isLoading = true;
@@ -29,14 +27,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Future<void> initMqtt() async {
     mqttClientWrapper = MQTTClientWrapper(
-            () => print('Success'), (message) => handleDevice(message));
+        () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
     getBus();
   }
 
   void getBus() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_BUS;
+    pubTopic = Constants.GET_BUS;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -116,13 +114,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget buildListView() {
     return buses.length != 0
         ? ListView.builder(
-      scrollDirection: Axis.vertical,
-      shrinkWrap: true,
-      itemCount: buses.length,
-      itemBuilder: (context, index) {
-        return itemView(index);
-      },
-    )
+            scrollDirection: Axis.vertical,
+            shrinkWrap: true,
+            itemCount: buses.length,
+            itemBuilder: (context, index) {
+              return itemView(index);
+            },
+          )
         : Center(child: Text('Không có thông tin'));
   }
 
@@ -136,9 +134,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10.0)),
                 //this right here
-                child: Container(
-
-                ),
+                child: Container(),
               );
             });
         // selectedIndex = index;
@@ -193,21 +189,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Expanded(
       child: data
           ? Container(
-        width: 5,
-        height: 5,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.green,
-        ),
-      )
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green,
+              ),
+            )
           : Container(
-        width: 5,
-        height: 5,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.red,
-        ),
-      ),
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.red,
+              ),
+            ),
       flex: flexValue,
     );
   }
@@ -239,7 +235,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_BUS:
+      case Constants.GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();

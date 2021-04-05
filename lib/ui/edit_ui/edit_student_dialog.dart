@@ -24,10 +24,6 @@ class EditStudentDialog extends StatefulWidget {
 }
 
 class _EditStudentDialogState extends State<EditStudentDialog> {
-  static const UPDATE_STUDENT = 'updateHS';
-  static const DELETE_STUDENT = 'deleteHS';
-  static const GET_PARENT = 'getph';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final studentNameController = TextEditingController();
@@ -65,16 +61,16 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
     Map responseMap = jsonDecode(message);
     if (responseMap['result'] == 'true' && responseMap['errorCode'] == '0') {
       switch (pubTopic) {
-        case UPDATE_STUDENT:
+        case Constants.UPDATE_STUDENT:
           widget.updateCallback(updatedStudent);
           Navigator.of(context).pop();
           break;
-        case DELETE_STUDENT:
+        case Constants.DELETE_STUDENT:
           widget.deleteCallback('true');
           Navigator.of(context).pop();
           Navigator.of(context).pop();
           break;
-        case GET_PARENT:
+        case Constants.GET_PARENT:
           DeviceResponse response =
               DeviceResponse.fromJson(jsonDecode(message));
           parents = response.id.map((e) => User.fromJson(e)).toList();
@@ -223,7 +219,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_STUDENT;
+                    pubTopic = Constants.DELETE_STUDENT;
                     var s = Student(widget.student.mahs, '', '', '', '', '', '',
                         Constants.mac);
                     publishMessage(pubTopic, jsonEncode(s));
@@ -338,7 +334,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
 
   void getParent() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_PARENT;
+    pubTopic = Constants.GET_PARENT;
     publishMessage(pubTopic, jsonEncode(t));
   }
 
@@ -352,7 +348,7 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
         '',
         '',
         Constants.mac);
-    pubTopic = UPDATE_STUDENT;
+    pubTopic = Constants.UPDATE_STUDENT;
     publishMessage(pubTopic, jsonEncode(updatedStudent));
   }
 

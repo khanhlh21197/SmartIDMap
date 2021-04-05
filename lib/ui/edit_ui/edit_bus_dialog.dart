@@ -30,14 +30,6 @@ class EditBusDialog extends StatefulWidget {
 }
 
 class _EditBusDialogState extends State<EditBusDialog> {
-  static const UPDATE_BUS = 'updateTuyenxe';
-  static const DELETE_BUS = 'deleteTuyenxe';
-  static const GET_ID_ALL = 'getmaall';
-
-  final String REGISTER_LICH_KLV = 'registerlichklv';
-  final String TX_HDS = 'updateTuyenxegiohds';
-  final String TX_HDC = 'updateTuyenxegiohdc';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final busNameController = TextEditingController();
@@ -100,7 +92,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
 
   void getIdAll() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_ID_ALL;
+    pubTopic = Constants.GET_ID_ALL;
     publishMessage(pubTopic, jsonEncode(t));
     // showLoadingDialog();
   }
@@ -108,14 +100,14 @@ class _EditBusDialogState extends State<EditBusDialog> {
   void handle(String message) {
     Map responseMap = jsonDecode(message);
     switch (pubTopic) {
-      case UPDATE_BUS:
+      case Constants.UPDATE_BUS:
         if (responseMap['result'] == 'true' &&
             responseMap['errorCode'] == '0') {
           widget.updateCallback(updatedBus);
           Navigator.of(context).pop();
         }
         break;
-      case DELETE_BUS:
+      case Constants.DELETE_BUS:
         if (responseMap['result'] == 'true' &&
             responseMap['errorCode'] == '0') {
           widget.deleteCallback('true');
@@ -123,7 +115,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
           Navigator.of(context).pop();
         }
         break;
-      case GET_ID_ALL:
+      case Constants.GET_ID_ALL:
         var response = MqttResponse.fromJson(responseMap);
         dropDownVehicles.clear();
         dropDownDrivers.clear();
@@ -443,7 +435,8 @@ class _EditBusDialogState extends State<EditBusDialog> {
                           // publishMessage('registerTuyenxe', jsonEncode(b));
                           print(
                               '_AddBusScreenState.buildButton ${jsonEncode(b)}');
-                          publishMessage(REGISTER_LICH_KLV, jsonEncode(b));
+                          publishMessage(
+                              Constants.REGISTER_LICH_KLV, jsonEncode(b));
                           setState(() {});
                         },
                       ));
@@ -558,7 +551,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = DELETE_BUS;
+                    pubTopic = Constants.DELETE_BUS;
                     Bus b = Bus(
                       busIdController.text,
                       utf8.encode(busNameController.text).toString(),
@@ -662,7 +655,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     [],
                     Constants.mac,
                   );
-                  publishMessage(TX_HDS, jsonEncode(b));
+                  publishMessage(Constants.TX_HDS, jsonEncode(b));
                 });
               },
               child: Text('Bắt đầu $morningStartTime'),
@@ -690,7 +683,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     [],
                     Constants.mac,
                   );
-                  publishMessage(TX_HDS, jsonEncode(b));
+                  publishMessage(Constants.TX_HDS, jsonEncode(b));
                 });
               },
               child: Text('Kết thúc $morningEndTime'),
@@ -732,7 +725,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     [],
                     Constants.mac,
                   );
-                  publishMessage(TX_HDC, jsonEncode(b));
+                  publishMessage(Constants.TX_HDC, jsonEncode(b));
                 });
               },
               child: Text('Bắt đầu $afternoonStartTime'),
@@ -760,7 +753,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
                     [],
                     Constants.mac,
                   );
-                  publishMessage(TX_HDC, jsonEncode(b));
+                  publishMessage(Constants.TX_HDC, jsonEncode(b));
                 });
               },
               child: Text('Kết thúc $afternoonEndTime'),
@@ -863,7 +856,7 @@ class _EditBusDialogState extends State<EditBusDialog> {
         '',
         [],
         Constants.mac);
-    pubTopic = UPDATE_BUS;
+    pubTopic = Constants.UPDATE_BUS;
     publishMessage(pubTopic, jsonEncode(updatedBus));
   }
 

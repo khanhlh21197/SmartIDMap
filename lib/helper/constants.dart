@@ -1,7 +1,4 @@
-import 'dart:io';
 import 'dart:ui';
-
-import 'package:device_info/device_info.dart';
 
 final double defaultZoom = 10.8746;
 final double newZoom = 15.8746;
@@ -32,6 +29,60 @@ final String home_status = "statusnha";
 final String room_status = "statusphong";
 final String device_status = "statusphong";
 String mac = "02:00:00:00:00:00";
+
+const LOGIN_PARENT = 'loginph';
+const REGISTER_USER = 'registeruser';
+const REGISTER_PARENT = 'registerph';
+const REGISTER_DEVICE = 'registertb';
+const REGISTER_DRIVER = 'registerlaixe';
+const REGISTER_MONITOR = 'registergiamsat';
+const REGISTER_STUDENT = 'registerHS';
+const REGISTER_HS_TX = 'registerHSTX';
+const REGISTER_CLASS = 'registerlop';
+const REGISTER_VEHICLE = 'registerXe';
+const REGISTER_HS_PH = 'registerHSPH';
+const GET_HS_PH = 'getHSPH';
+const GET_PHONE = 'getdienthoai';
+
+const String GET_STUDENT = 'getHS';
+const GET_STUDENT_BY_BUS_ID = 'getHSkmatx';
+const GET_BUS = 'getTuyenxe';
+const GET_PARENT = 'getph';
+const String GET_CLASS = 'getlop';
+const String GET_CLASS_BY_GRADE = 'getloptheokhoi';
+const String GET_STUDENT_BY_CLASS = 'getHStheolop';
+const UPDATE_HS_TX = 'updateHSTX';
+const GET_HS_TX = 'getHSTX';
+final String REGISTER_LICH_KLV = 'registerlichklv';
+final String TX_HDS = 'updateTuyenxegiohds';
+final String TX_HDC = 'updateTuyenxegiohdc';
+const GET_MONITOR = 'getgiamsat';
+const GET_DRIVER = 'getlaixe';
+const GET_DEVICE = 'gettb';
+const GET_VEHICLE = 'getXe';
+const REGISTER_BUS = 'registerTuyenxe';
+const GET_ID_ALL = 'getmaall';
+
+const UPDATE_BUS = 'updateTuyenxe';
+const DELETE_BUS = 'deleteTuyenxe';
+const UPDATE_DEVICE = 'updatethietbi';
+const DELETE_DEVICE = 'deletethietbi';
+const UPDATE_DRIVER = 'updatelaixe';
+const DELETE_DRIVER = 'deletelaixe';
+const UPDATE_MONITOR = 'updategiamsat';
+const DELETE_MONITOR = 'deletegiamsat';
+const UPDATE_STUDENT = 'updateHS';
+const DELETE_STUDENT = 'deleteHS';
+const UPDATE_VEHICLE = 'updateXe';
+const DELETE_VEHICLE = 'deleteXe';
+const UPDATE_USER = 'updateuser';
+const UPDATE_PARENT = 'updateph';
+const DELETE_USER = 'deleteuser';
+const CHANGE_PASSWORD = 'updatepass';
+
+const GET_INFO_USER = 'getinfouser';
+const GET_INFO_PARENT = 'getinfoph';
+const GET_DEPARTMENT = 'loginkhoa';
 
 const kPrimaryColor = Color(0xFF6F35A5);
 const kPrimaryLightColor = Color(0xFFF1E6FF);

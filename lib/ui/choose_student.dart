@@ -22,9 +22,6 @@ class ChooseStudentPage extends StatefulWidget {
 }
 
 class _ChooseStudentPageState extends State<ChooseStudentPage> {
-  static const GET_STUDENT = 'getHSPH';
-  static const GET_PHONE = 'getdienthoai';
-
   String pubTopic;
   String sdtlx;
   String sdtgs;
@@ -54,7 +51,7 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
   void getStudents() async {
     String maph = await sharedPrefsHelper.getStringValuesSF('email');
     Student t = Student('', '', '', '', maph, '', '', Constants.mac);
-    pubTopic = GET_STUDENT;
+    pubTopic = Constants.GET_HS_PH;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -62,7 +59,7 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
   void getPhoneNumber(String matx) {
     Student t = Student('', '', '', '', '', '', '', Constants.mac);
     t.matx = matx;
-    pubTopic = GET_PHONE;
+    pubTopic = Constants.GET_PHONE;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -281,14 +278,14 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
 
   void handleDevice(String message) async {
     switch (pubTopic) {
-      case GET_STUDENT:
+      case Constants.GET_HS_PH:
         Map responseMap = jsonDecode(message);
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();
         break;
-      case GET_PHONE:
+      case Constants.GET_PHONE:
         final test = testFromJson(message);
         sdtlx = test.id.sdtlx;
         sdtgs = test.id.sdtgs;

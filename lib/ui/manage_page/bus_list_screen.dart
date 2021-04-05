@@ -16,8 +16,6 @@ class BusListScreen extends StatefulWidget {
 }
 
 class _BusListScreenState extends State<BusListScreen> {
-  static const GET_BUS = 'getTuyenxe';
-
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
 
   List<Bus> buses = List();
@@ -42,7 +40,7 @@ class _BusListScreenState extends State<BusListScreen> {
 
   void getBus() async {
     ThietBi t = ThietBi('', '', '', '', '', Constants.mac);
-    pubTopic = GET_BUS;
+    pubTopic = Constants.GET_BUS;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -284,7 +282,7 @@ class _BusListScreenState extends State<BusListScreen> {
     var response = DeviceResponse.fromJson(responseMap);
 
     switch (pubTopic) {
-      case GET_BUS:
+      case Constants.GET_BUS:
         buses = response.id.map((e) => Bus.fromJson(e)).toList();
         setState(() {});
         hideLoadingDialog();
