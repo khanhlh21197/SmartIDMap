@@ -61,7 +61,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('TX - HS'),
+        title: Text('Cập nhật Phụ huynh'),
         centerTitle: true,
       ),
       body: buildBody(),
@@ -69,29 +69,31 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
   }
 
   Widget buildBody() {
-    return Container(
-      child: Column(
-        children: [
-          _dropDownParent(),
-          chooseClassContainer(),
-          // FlatButton(
-          //   onPressed: () {
-          //     registerHSTX();
-          //   },
-          //   child: Text('Thêm'),
-          //   color: Colors.blue,
-          // ),
-          SizedBox(height: 10),
-          Text(
-            tableTitle,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(height: 10),
-          buildTableTitle(),
-          buildListView(),
-          buildButton(),
-          testText(),
-        ],
+    return SingleChildScrollView(
+      child: Container(
+        child: Column(
+          children: [
+            _dropDownParent(),
+            chooseClassContainer(),
+            // FlatButton(
+            //   onPressed: () {
+            //     registerHSTX();
+            //   },
+            //   child: Text('Thêm'),
+            //   color: Colors.blue,
+            // ),
+            SizedBox(height: 10),
+            Text(
+              tableTitle,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            buildTableTitle(),
+            buildListView(),
+            buildButton(),
+            testText(),
+          ],
+        ),
       ),
     );
   }

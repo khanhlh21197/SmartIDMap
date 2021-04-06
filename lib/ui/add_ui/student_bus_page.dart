@@ -40,8 +40,10 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   String pubTopic;
   String tableTitle = 'Danh sách học sinh theo tuyến xe';
   bool isLoading = true;
+  bool checkAll = false;
 
   List<Class> classes = List();
+  List<dynamic> displayList = List();
 
   var dropDownGrades = ['   '];
   var dropDownClasses = ['   '];
@@ -66,7 +68,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('TX - HS'),
+        title: Text('Cập nhật tuyến xe'),
         centerTitle: true,
       ),
       body: buildBody(),
@@ -74,30 +76,67 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   }
 
   Widget buildBody() {
+    return SingleChildScrollView(
+      child: Container(
+        child: Column(
+          children: [
+            _dropDownBus(),
+            // _dropDownStudent(),
+            // _dropDownParent(),
+            chooseClassContainer(),
+            // FlatButton(
+            //   onPressed: () {
+            //     registerHSTX();
+            //   },
+            //   child: Text('Thêm'),
+            //   color: Colors.blue,
+            // ),
+            SizedBox(height: 10),
+            Text(
+              tableTitle,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            buildTableTitle(),
+            buildListView(),
+            selectAllCheckBox(),
+            buildButton(),
+            testText(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget selectAllCheckBox() {
     return Container(
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          _dropDownBus(),
-          // _dropDownStudent(),
-          // _dropDownParent(),
-          chooseClassContainer(),
-          // FlatButton(
-          //   onPressed: () {
-          //     registerHSTX();
-          //   },
-          //   child: Text('Thêm'),
-          //   color: Colors.blue,
-          // ),
-          SizedBox(height: 10),
           Text(
-            tableTitle,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            'Chọn tất cả',
           ),
-          SizedBox(height: 10),
-          buildTableTitle(),
-          buildListView(),
-          buildButton(),
-          testText(),
+          Checkbox(
+              value: checkAll,
+              onChanged: (_value) {
+                checkAll = !checkAll;
+                if (checkAll) {
+                  displayList.forEach((element) {
+                    element.isSelected = true;
+                    if (!studentBusOldIds.contains(element.mahs)) {
+                      addSttudentIds.add(element.mahs);
+                    }
+                  });
+                } else {
+                  displayList.forEach((element) {
+                    element.isSelected = false;
+                    if (studentBusOldIds.contains(element.mahs)) {
+                      removeStudentIds.add(element.mahs);
+                    }
+                  });
+                }
+                setState(() {});
+              }),
         ],
       ),
     );
@@ -169,7 +208,9 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
           verticalLine(),
           buildTextLabel('Tên HS', 4),
           verticalLine(),
-          buildTextLabel('Mã', 2),
+          buildTextLabel('Mã HS', 2),
+          verticalLine(),
+          buildTextLabel('Mã PH', 2),
           verticalLine(),
           buildTextLabel('Chọn', 1),
         ],
@@ -192,7 +233,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
   }
 
   Widget buildListView() {
-    List<dynamic> displayList = List();
+    displayList = List();
     switch (pubTopic) {
       case Constants.GET_STUDENT:
       case Constants.GET_STUDENT_BY_CLASS:
@@ -241,9 +282,11 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                 children: [
                   buildTextData('${index + 1}', 1),
                   verticalLine(),
-                  buildTextData(displayList[index].tenDecode, 4),
+                  buildTextData(displayList[index].tenDecode ?? '', 4),
                   verticalLine(),
-                  buildTextData(displayList[index].mahs, 2),
+                  buildTextData(displayList[index].mahs ?? '', 2),
+                  verticalLine(),
+                  buildTextData(displayList[index].maph ?? '', 2),
                   verticalLine(),
                   Expanded(
                     flex: 1,
@@ -357,6 +400,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                   print(busId);
                   _grade = null;
                   _class = null;
+                  checkAll = false;
                   removeStudentIds.clear();
                   studentBusOldIds.clear();
                   // getAvaiableStudents();
@@ -530,6 +574,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                   _grade = data;
                   print(_grade);
                   _class = null;
+                  checkAll = false;
                   getClasses(_grade);
                 });
               },
@@ -585,6 +630,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                 setState(() {
                   _class = data;
                   print(_class);
+                  checkAll = false;
                   getStudentsByClass();
                 });
               },

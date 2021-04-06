@@ -10,20 +10,20 @@ import 'package:smartid_map/model/thietbi.dart';
 import 'package:smartid_map/model/user.dart';
 import 'package:smartid_map/response/device_response.dart';
 
-class EditStudentDialog extends StatefulWidget {
-  final Student student;
+class EditParentDialog extends StatefulWidget {
+  final User parent;
   final Function(dynamic) updateCallback;
   final Function(dynamic) deleteCallback;
 
-  const EditStudentDialog(
-      {Key key, this.student, this.updateCallback, this.deleteCallback})
+  const EditParentDialog(
+      {Key key, this.parent, this.updateCallback, this.deleteCallback})
       : super(key: key);
 
   @override
-  _EditStudentDialogState createState() => _EditStudentDialogState();
+  _EditParentDialogState createState() => _EditParentDialogState();
 }
 
-class _EditStudentDialogState extends State<EditStudentDialog> {
+class _EditParentDialogState extends State<EditParentDialog> {
   final GlobalKey<State> _keyLoader = new GlobalKey<State>();
   final scrollController = ScrollController();
   final studentNameController = TextEditingController();
@@ -83,11 +83,11 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
   }
 
   void initController() async {
-    studentNameController.text = widget.student.tenDecode;
-    studentIdController.text = widget.student.mahs;
-    parentIdController.text = widget.student.maph;
-    phoneNumberController.text = widget.student.sdt;
-    addressController.text = widget.student.nhaDecode;
+    studentNameController.text = widget.parent.tenDecode;
+    // studentIdController.text = widget.parent.mahs;
+    parentIdController.text = widget.parent.maph;
+    phoneNumberController.text = widget.parent.sdt;
+    addressController.text = widget.parent.nhaDecode;
   }
 
   @override
@@ -108,19 +108,13 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 buildTextField(
-                  'Mã hs',
-                  Icon(Icons.vpn_key),
-                  TextInputType.visiblePassword,
-                  studentIdController,
-                ),
-                buildTextField(
-                  'Mã ph',
+                  'Mã PH/ username',
                   Icon(Icons.vpn_key),
                   TextInputType.visiblePassword,
                   parentIdController,
                 ),
                 buildTextField(
-                  'Tên hs',
+                  'Tên phụ huynh',
                   Icon(Icons.vpn_key),
                   TextInputType.text,
                   studentNameController,
@@ -216,10 +210,10 @@ class _EditStudentDialogState extends State<EditStudentDialog> {
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = Constants.DELETE_STUDENT;
-                    var s = Student(widget.student.mahs, '', '', '', '', '', '',
-                        Constants.mac);
-                    publishMessage(pubTopic, jsonEncode(s));
+                    // pubTopic = Constants.DELETE_STUDENT;
+                    // var s = Student(widget.parent.mahs, '', '', '', '', '', '',
+                    //     Constants.mac);
+                    // publishMessage(pubTopic, jsonEncode(s));
                   },
                   child: new Text(
                     'Đồng ý',

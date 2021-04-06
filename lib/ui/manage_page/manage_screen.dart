@@ -3,6 +3,7 @@ import 'package:smartid_map/ui/manage_page/bus_list_screen.dart';
 import 'package:smartid_map/ui/manage_page/device_list_screen.dart';
 import 'package:smartid_map/ui/manage_page/driver_list_screen.dart';
 import 'package:smartid_map/ui/manage_page/monitor_list_screen.dart';
+import 'package:smartid_map/ui/manage_page/parent_list_screen.dart';
 import 'package:smartid_map/ui/manage_page/student_list_screen.dart';
 import 'package:smartid_map/ui/manage_page/vehicle_list_screen.dart';
 
@@ -19,7 +20,8 @@ class _ManageScreenState extends State<ManageScreen> {
     'Xe',
     'Thiết bị',
     'Tuyến xe',
-    'Học sinh'
+    'Học sinh',
+    'Phụ huynh',
   ];
 
   @override
@@ -51,6 +53,7 @@ class _ManageScreenState extends State<ManageScreen> {
     if (manageValue == manageValues[3]) return DeviceListScreen();
     if (manageValue == manageValues[4]) return BusListScreen();
     if (manageValue == manageValues[5]) return StudentListScreen();
+    if (manageValue == manageValues[6]) return ParentListScreen();
     return Container();
   }
 

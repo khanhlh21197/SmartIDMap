@@ -78,6 +78,7 @@ const UPDATE_VEHICLE = 'updateXe';
 const DELETE_VEHICLE = 'deleteXe';
 const UPDATE_USER = 'updateuser';
 const UPDATE_PARENT = 'updateph';
+const DELETE_PARENT = 'deleteph';
 const DELETE_USER = 'deleteuser';
 const CHANGE_PASSWORD = 'updatepass';
 
