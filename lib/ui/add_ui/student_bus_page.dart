@@ -124,7 +124,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
             child: RaisedButton(
               onPressed: () {
                 var updateHSTX = HSTX(Constants.mac, '', busId, '');
-                updateHSTX.themhs = studentBusOldIds;
+                updateHSTX.themhs = addSttudentIds;
                 updateHSTX.xoahs = removeStudentIds;
                 pubTopic = Constants.UPDATE_HS_TX;
                 publishMessage(pubTopic, jsonEncode(updateHSTX));
@@ -775,6 +775,8 @@ class HSTX {
         'mahs': mahs,
         'matx': matx,
         'maph': maph,
+        'themhs': themhs,
+        'xoahs': xoahs,
       };
 
   HSTX.fromJson(Map<String, dynamic> json)
@@ -782,5 +784,7 @@ class HSTX {
         mahs = json['mahs'],
         matx = json['matx'],
         maph = json['maph'],
-        ten = json['ten'];
+        ten = json['ten'],
+        themhs = json['themhs'],
+        xoahs = json['xoahs'];
 }

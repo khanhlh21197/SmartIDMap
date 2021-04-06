@@ -761,7 +761,7 @@ class _SignUpPageState extends State<SignUpPage> {
           _showToast(context);
         }
         break;
-      case Constants.GET_STUDENT:
+      case Constants.GET_STUDENT_BY_CLASS:
         var response = DeviceResponse.fromJson(responseMap);
         students = response.id.map((e) => Student.fromJson(e)).toList();
         students.forEach((element) {

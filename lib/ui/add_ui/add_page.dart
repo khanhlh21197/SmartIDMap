@@ -5,7 +5,6 @@ import 'package:smartid_map/helper/constants.dart' as Constants;
 import 'package:smartid_map/helper/models.dart';
 import 'package:smartid_map/helper/mqttClientWrapper.dart';
 import 'package:smartid_map/helper/shared_prefs_helper.dart';
-import 'package:smartid_map/model/department.dart';
 import 'package:smartid_map/navigator.dart';
 import 'package:smartid_map/signup.dart';
 import 'package:smartid_map/ui/add_ui/add_bus_page.dart';
@@ -83,6 +82,8 @@ class _AddScreenState extends State<AddScreen> {
             horizontalLine(),
             buildButton('HS - TX', Icons.add, 6),
             horizontalLine(),
+            buildButton('HS - PH', Icons.add, 9),
+            horizontalLine(),
             buildButton('Lớp', Icons.add, 8),
           ],
         ),
@@ -133,6 +134,9 @@ class _AddScreenState extends State<AddScreen> {
             break;
           case 8:
             navigatorPush(context, AddClassScreen());
+            break;
+          case 9:
+            navigatorPush(context, StudentParentScreen());
             break;
         }
       },

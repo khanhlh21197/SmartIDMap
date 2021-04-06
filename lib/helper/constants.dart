@@ -52,6 +52,7 @@ const String GET_CLASS = 'getlop';
 const String GET_CLASS_BY_GRADE = 'getloptheokhoi';
 const String GET_STUDENT_BY_CLASS = 'getHStheolop';
 const UPDATE_HS_TX = 'updateHSTX';
+const UPDATE_HS_PH = 'updateHSPH';
 const GET_HS_TX = 'getHSTX';
 final String REGISTER_LICH_KLV = 'registerlichklv';
 final String TX_HDS = 'updateTuyenxegiohds';
