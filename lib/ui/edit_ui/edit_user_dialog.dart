@@ -84,10 +84,10 @@ class _EditUserDialogState extends State<EditUserDialog>
         widget.updateCallback(updatedUser);
         Navigator.pop(context);
         break;
-      case Constants.CHANGE_PASSWORD:
+      case Constants.CHANGE_PASSWORD_USER:
         Navigator.pop(context);
         break;
-      case Constants.DELETE_USER:
+      case Constants.DELETE_PARENT:
         widget.deleteCallback('true');
         Navigator.pop(context);
         Navigator.pop(context);
@@ -360,9 +360,10 @@ class _EditUserDialogState extends State<EditUserDialog>
                 ),
                 new FlatButton(
                   onPressed: () {
-                    pubTopic = Constants.DELETE_USER;
-                    var u = User(Constants.mac, widget.user.user,
-                        widget.user.pass, '', '', '', '', '', '');
+                    pubTopic = Constants.DELETE_PARENT;
+                    var u = User(Constants.mac, emailController.text,
+                        widget.user.pass, '', '', '', '', '', '',
+                        maph: emailController.text);
                     publishMessage(pubTopic, jsonEncode(u));
                   },
                   child: new Text(
@@ -421,7 +422,11 @@ class _EditUserDialogState extends State<EditUserDialog>
                     _tryEdit(pubTopic);
                     break;
                   case 1:
-                    pubTopic = Constants.CHANGE_PASSWORD;
+                    if (widget.switchValue) {
+                      pubTopic = Constants.CHANGE_PASSWORD_PARENT;
+                    } else {
+                      pubTopic = Constants.CHANGE_PASSWORD_USER;
+                    }
                     changePass();
                     break;
                 }
@@ -463,11 +468,16 @@ class _EditUserDialogState extends State<EditUserDialog>
       currentSelectedValue,
       permission,
       '',
+      maph: emailController.text,
     );
     updatedUser.passmoi = newPasswordController.text;
     updatedUser.iduser = await sharedPrefsHelper.getStringValuesSF('iduser');
-    ChangePassword changePassword = ChangePassword(updatedUser.user,
-        updatedUser.pass, updatedUser.passmoi, updatedUser.mac);
+    ChangePassword changePassword = ChangePassword(
+        updatedUser.user,
+        updatedUser.pass,
+        updatedUser.passmoi,
+        updatedUser.maph,
+        updatedUser.mac);
     publishMessage(pubTopic, jsonEncode(changePassword));
   }
 
@@ -501,13 +511,15 @@ class ChangePassword {
   final String pass;
   final String passmoi;
   final String mac;
+  String maph;
 
-  ChangePassword(this.user, this.pass, this.passmoi, this.mac);
+  ChangePassword(this.user, this.pass, this.passmoi, this.maph, this.mac);
 
   Map<String, dynamic> toJson() => {
         'user': user,
         'pass': pass,
         'passmoi': passmoi,
         'mac': mac,
+        'maph': maph,
       };
 }

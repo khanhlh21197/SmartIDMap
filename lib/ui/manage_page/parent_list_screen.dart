@@ -183,6 +183,7 @@ class _ParentListScreenState extends State<ParentListScreen> {
                     updateCallback: (updatedDevice) {
                       getParents();
                     },
+                    switchValue: true,
                   ),
                 ),
               );
