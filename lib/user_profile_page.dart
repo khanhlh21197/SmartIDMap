@@ -256,12 +256,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               : 'Chưa nhập tên',
                           Color(0xff8f48ff),
                           null),
-                      _placeContainer(
-                          user.user != null
-                              ? 'Tên ĐN: ${user.user}'
-                              : 'Tên ĐN: ',
-                          Color(0xff526fff),
-                          null),
+                      _placeContainer('Tên ĐN: ${user.user ?? user.maph ?? ''}',
+                          Color(0xff526fff), null),
                       _placeContainer(
                           user.nhaDecode != null
                               ? 'Địa chỉ: ${user.nhaDecode}'
