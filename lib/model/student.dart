@@ -10,6 +10,7 @@ class Student {
   String matx;
   String lop;
   String khoi;
+  String tenhs;
   bool isSelected = false;
 
   Student(this.mahs, this.ten, this.sdt, this.nha, this.maph, this.lop,
@@ -17,7 +18,7 @@ class Student {
 
   String get tenDecode {
     try {
-      String s = ten;
+      String s = ten ?? tenhs;
       List<int> ints = List();
       s = s.replaceAll('[', '');
       s = s.replaceAll(']', '');
@@ -27,7 +28,7 @@ class Student {
       }
       return utf8.decode(ints);
     } catch (e) {
-      return ten;
+      return ten ?? tenhs;
     }
   }
 
@@ -56,6 +57,7 @@ class Student {
         mac = json['mac'],
         matx = json['matx'],
         lop = json['lop'],
+        tenhs = json['tenhs'],
         khoi = json['khoi'];
 
   Map<String, dynamic> toJson() => {
@@ -68,5 +70,6 @@ class Student {
         'matx': matx,
         'lop': lop,
         'khoi': khoi,
+        'tenhs': tenhs,
       };
 }

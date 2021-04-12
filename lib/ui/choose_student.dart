@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -25,6 +26,7 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
   String pubTopic;
   String sdtlx;
   String sdtgs;
+  String matx;
 
   List<Student> students = List();
   var dropDownStudents = ['   '];
@@ -36,12 +38,12 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
 
   @override
   void initState() {
+    sharedPrefsHelper = SharedPrefsHelper();
     initMqtt();
     super.initState();
   }
 
   Future<void> initMqtt() async {
-    sharedPrefsHelper = SharedPrefsHelper();
     mqttClientWrapper = MQTTClientWrapper(
         () => print('Success'), (message) => handleDevice(message));
     await mqttClientWrapper.prepareMqttClient(Constants.mac);
@@ -56,10 +58,42 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
     showLoadingDialog();
   }
 
-  void getPhoneNumber(String matx) {
+  void getPhoneNumber(String matx) async {
+    mqttClientWrapper =
+        MQTTClientWrapper(() => print('Success'), (message) async {
+      try {
+        final test = phoneFromJson(message);
+        if (test.result == 'false') {
+          sdtlx = '';
+          sdtgs = '';
+        } else {
+          sdtlx = test.id.sdtlx;
+          sdtgs = test.id.sdtgs;
+        }
+      } catch (e) {
+        print('_ChooseStudentPageState.getPhoneNumber $e');
+      } finally {
+        await sharedPrefsHelper.addStringToSF('sdtlx', sdtlx);
+        await sharedPrefsHelper.addStringToSF('sdtgs', sdtgs);
+        hideLoadingDialog();
+        navigatorPush(
+            context,
+            MainScreen(
+              quyen: widget.quyen,
+            ));
+      }
+    });
+    await mqttClientWrapper.prepareMqttClient(Constants.mac);
     Student t = Student('', '', '', '', '', '', '', Constants.mac);
     t.matx = matx;
     pubTopic = Constants.GET_PHONE;
+    publishMessage(pubTopic, jsonEncode(t));
+    // showLoadingDialog();
+  }
+
+  void getBusIdByStudentId(String mahs) {
+    Student t = Student(mahs, '', '', '', '', '', '', Constants.mac);
+    pubTopic = Constants.GET_BUS_BY_STUDENT_ID;
     publishMessage(pubTopic, jsonEncode(t));
     showLoadingDialog();
   }
@@ -159,8 +193,8 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
           buildTextLabel('Tên HS', 4),
           verticalLine(),
           buildTextLabel('Mã HS', 2),
-          verticalLine(),
-          buildTextLabel('Mã tuyến', 2),
+          // verticalLine(),
+          // buildTextLabel('Mã tuyến', 2),
         ],
       ),
     );
@@ -193,7 +227,8 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
   Widget itemView(int index) {
     return InkWell(
       onTap: () async {
-        getPhoneNumber(students[index].matx);
+        getBusIdByStudentId(students[index].mahs);
+        // getPhoneNumber(students[index].matx);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 1),
@@ -208,8 +243,8 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
                   buildTextData(students[index].tenDecode ?? '', 4),
                   verticalLine(),
                   buildTextData(students[index].mahs ?? '', 2),
-                  verticalLine(),
-                  buildTextData(students[index].matx ?? '', 2),
+                  // verticalLine(),
+                  // buildTextData(students[index].matx ?? '', 2),
                 ],
               ),
             ),
@@ -286,7 +321,7 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
         hideLoadingDialog();
         break;
       case Constants.GET_PHONE:
-        final test = testFromJson(message);
+        final test = phoneFromJson(message);
         sdtlx = test.id.sdtlx;
         sdtgs = test.id.sdtgs;
         await sharedPrefsHelper.addStringToSF('sdtlx', sdtlx);
@@ -298,8 +333,20 @@ class _ChooseStudentPageState extends State<ChooseStudentPage> {
               quyen: widget.quyen,
             ));
         break;
+      case Constants.GET_BUS_BY_STUDENT_ID:
+        Map responseMap = jsonDecode(message);
+        var response = DeviceResponse.fromJson(responseMap);
+        matx = response.id[0]['matx'];
+        // hideLoadingDialog();
+        getPhoneNumber(matx);
+        // navigatorPush(
+        //     context,
+        //     BusLoadingPage(
+        //       matx: matx,
+        //       quyen: widget.quyen,
+        //     ));
+        break;
     }
-    pubTopic = '';
   }
 
   @override

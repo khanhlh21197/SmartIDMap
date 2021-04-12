@@ -240,7 +240,7 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
         setState(() {});
         break;
       case Constants.GET_PHONE:
-        final test = testFromJson(message);
+        final test = phoneFromJson(message);
         sdtlx = test.id.sdtlx;
         sdtgs = test.id.sdtgs;
         hideLoadingDialog();
@@ -254,12 +254,13 @@ class _ChooseStudentScreenState extends State<ChooseStudentScreen> {
 //
 //     final test = testFromJson(jsonString);
 
-Test testFromJson(String str) => Test.fromJson(json.decode(str));
+PhoneResponse phoneFromJson(String str) =>
+    PhoneResponse.fromJson(json.decode(str));
 
-String testToJson(Test data) => json.encode(data.toJson());
+String phoneToJson(PhoneResponse data) => json.encode(data.toJson());
 
-class Test {
-  Test({
+class PhoneResponse {
+  PhoneResponse({
     this.errorCode,
     this.message,
     this.id,
@@ -271,7 +272,7 @@ class Test {
   Id id;
   String result;
 
-  factory Test.fromJson(Map<String, dynamic> json) => Test(
+  factory PhoneResponse.fromJson(Map<String, dynamic> json) => PhoneResponse(
         errorCode: json["errorCode"],
         message: json["message"],
         id: Id.fromJson(json["id"]),
@@ -290,18 +291,22 @@ class Id {
   Id({
     this.sdtlx,
     this.sdtgs,
+    this.matx,
   });
 
   String sdtlx;
   String sdtgs;
+  String matx;
 
   factory Id.fromJson(Map<String, dynamic> json) => Id(
         sdtlx: json["sdtlx"],
         sdtgs: json["sdtgs"],
+        matx: json["matx"],
       );
 
   Map<String, dynamic> toJson() => {
         "sdtlx": sdtlx,
         "sdtgs": sdtgs,
+        "matx": matx,
       };
 }

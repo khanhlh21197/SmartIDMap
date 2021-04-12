@@ -408,8 +408,8 @@ class _MapViewState extends State<MapView> {
 
   void getSharedPrefs() async {
     sharedPrefsHelper = SharedPrefsHelper();
-    sdtgs = await sharedPrefsHelper.getStringValuesSF('sdtgs');
-    sdtlx = await sharedPrefsHelper.getStringValuesSF('sdtlx');
+    sdtgs = await sharedPrefsHelper.getStringValuesSF('sdtgs') ?? '0963003197';
+    sdtlx = await sharedPrefsHelper.getStringValuesSF('sdtlx') ?? '0963003197';
   }
 
   Future<void> busMoving() async {

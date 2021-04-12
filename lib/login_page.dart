@@ -94,6 +94,8 @@ class _LoginPageState extends State<LoginPage> {
     _emailController.text = await sharedPrefsHelper.getStringValuesSF('email');
     _passwordController.text =
         await sharedPrefsHelper.getStringValuesSF('password');
+    switchValue =
+        await sharedPrefsHelper.getBoolValuesSF('switchValue') ?? false;
     if (_emailController.text.isNotEmpty &&
         _passwordController.text.isNotEmpty) {
       await _tryLogin();
