@@ -218,7 +218,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
 
   Widget itemView(int index, List<dynamic> displayList) {
     displayList.forEach((element) {
-      if (addSttudentIds.contains(element.matx)) {
+      if (addSttudentIds.contains(element.mahs)) {
         element.isSelected = true;
       }
     });
@@ -236,7 +236,7 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
                   verticalLine(),
                   buildTextData(displayList[index].tenDecode ?? '', 4),
                   verticalLine(),
-                  buildTextData(displayList[index].matx, 2),
+                  buildTextData(displayList[index].mahs, 2),
                   verticalLine(),
                   Expanded(
                     flex: 1,
@@ -247,17 +247,17 @@ class _StudentParentScreenState extends State<StudentParentScreen> {
                               !displayList[index].isSelected;
                           if (displayList[index].isSelected) {
                             if (!studentParentOldIds
-                                .contains(displayList[index].matx)) {
-                              addSttudentIds.add(displayList[index].matx);
+                                .contains(displayList[index].mahs)) {
+                              addSttudentIds.add(displayList[index].mahs);
                             }
-                            removeStudentIds.remove(displayList[index].matx);
+                            removeStudentIds.remove(displayList[index].mahs);
                           }
                           if (!displayList[index].isSelected) {
                             if (studentParentOldIds
-                                .contains(displayList[index].matx)) {
-                              removeStudentIds.add(displayList[index].matx);
+                                .contains(displayList[index].mahs)) {
+                              removeStudentIds.add(displayList[index].mahs);
                             }
-                            addSttudentIds.remove(displayList[index].matx);
+                            addSttudentIds.remove(displayList[index].mahs);
                           }
                           print(
                               '_StudentBusScreenState.itemView $studentParentOldIds');

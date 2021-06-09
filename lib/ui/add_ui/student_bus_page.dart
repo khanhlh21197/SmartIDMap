@@ -123,15 +123,15 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                 if (checkAll) {
                   displayList.forEach((element) {
                     element.isSelected = true;
-                    if (!studentBusOldIds.contains(element.matx)) {
-                      addSttudentIds.add(element.matx);
+                    if (!studentBusOldIds.contains(element.mahs)) {
+                      addSttudentIds.add(element.mahs);
                     }
                   });
                 } else {
                   displayList.forEach((element) {
                     element.isSelected = false;
-                    if (studentBusOldIds.contains(element.matx)) {
-                      removeStudentIds.add(element.matx);
+                    if (studentBusOldIds.contains(element.mahs)) {
+                      removeStudentIds.add(element.mahs);
                     }
                   });
                 }
@@ -266,7 +266,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
 
   Widget itemView(int index, List<dynamic> displayList) {
     displayList.forEach((element) {
-      if (addSttudentIds.contains(element.matx)) {
+      if (addSttudentIds.contains(element.mahs)) {
         element.isSelected = true;
       }
     });
@@ -284,7 +284,7 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                   verticalLine(),
                   buildTextData(displayList[index].tenDecode ?? '', 4),
                   verticalLine(),
-                  buildTextData(displayList[index].matx ?? '', 2),
+                  buildTextData(displayList[index].mahs ?? '', 2),
                   verticalLine(),
                   buildTextData(displayList[index].maph ?? '', 2),
                   verticalLine(),
@@ -297,17 +297,17 @@ class _StudentBusScreenState extends State<StudentBusScreen> {
                               !displayList[index].isSelected;
                           if (displayList[index].isSelected) {
                             if (!studentBusOldIds
-                                .contains(displayList[index].matx)) {
-                              addSttudentIds.add(displayList[index].matx);
+                                .contains(displayList[index].mahs)) {
+                              addSttudentIds.add(displayList[index].mahs);
                             }
-                            removeStudentIds.remove(displayList[index].matx);
+                            removeStudentIds.remove(displayList[index].mahs);
                           }
                           if (!displayList[index].isSelected) {
                             if (studentBusOldIds
-                                .contains(displayList[index].matx)) {
-                              removeStudentIds.add(displayList[index].matx);
+                                .contains(displayList[index].mahs)) {
+                              removeStudentIds.add(displayList[index].mahs);
                             }
-                            addSttudentIds.remove(displayList[index].matx);
+                            addSttudentIds.remove(displayList[index].mahs);
                           }
                           print(
                               '_StudentBusScreenState.itemView $studentBusOldIds');

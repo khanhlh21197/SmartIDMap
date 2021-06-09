@@ -551,7 +551,7 @@ class _MapViewState extends State<MapView> {
             position: LatLng(_busPosition.latitude, _busPosition.longitude),
             // infoWindow: InfoWindow(title: address, snippet: "go here"),
             icon: customIcon));
-        busMoving();
+        // busMoving();
       },
     );
   }
@@ -863,7 +863,7 @@ class _MapViewState extends State<MapView> {
         MQTTClientWrapper(() => print('Success'), (message) => handle(message));
     await mqttClientWrapper.prepareMqttClient('gps');
 
-    getStudentId();
+    // getStudentId();
   }
 
   void handle(String message) {
