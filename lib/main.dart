@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smartid_map/login_page.dart';
 import 'package:smartid_map/splash_screen.dart';
 
 void main() {
@@ -11,7 +12,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Geolocation Google Maps Demo',
-      home: SplashScreen(),
+      // home: SplashScreen(),
+      home: LoginPage(),
     );
   }
 }

@@ -20,11 +20,13 @@ final String defaultMarkerId = "1";
 // final String serverUri = "45.119.82.186";
 final String server_uri_key = 'serverUri';
 // final String serverUri = "192.168.1.237";
-final String serverUri = "192.168.137.1";
+// final String serverUri = "192.168.137.1";
+final String serverUri = "103.237.145.184";
 
 // final String serverUri = "192.168.2.5";
 // final int port = 1234;
-final int port = 4567;
+final int port = 4568;
+// final int port = 4567;
 final String login_topic = "loginuser";
 final String patient_login_topic = "loginbenhnhan";
 final String home_status = "statusnha";

@@ -66,7 +66,8 @@ class MQTTClientWrapper {
   }
 
   void _setupMqttClient() async {
-    client = MqttServerClient(_serverUri, "client_id");
+    // client = MqttServerClient(_serverUri, "client_id");
+    client = MqttServerClient(Constants.serverUri, "client_id");
     client.port = Constants.port;
     client.logging(on: true);
     client.keepAlivePeriod = 20;
